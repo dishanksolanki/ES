@@ -27,6 +27,7 @@
     --line: #dde5e1;
     --radius: 14px;
     --shadow: 0 1px 2px rgba(23,35,31,.04), 0 8px 24px rgba(23,35,31,.06);
+    --focus-ring: 0 0 0 3px rgba(42,97,90,.35);
   }
 
   *{ box-sizing: border-box; }
@@ -54,6 +55,13 @@
 
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  /* ---------- Visible keyboard focus everywhere ---------- */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-color: var(--teal-2);
   }
 
   /* ---------- App shell ---------- */
@@ -152,10 +160,6 @@
   .hero{ text-align:left; padding: 6px 2px 8px; }
   .hero h1{ font-size: 34px; line-height:1.15; max-width: 480px; }
   .hero .sub{ color: var(--ink-soft); font-size:15.5px; max-width:460px; margin-top:14px; line-height:1.6; }
-  .hero-vitals{
-    margin: 26px 0 30px;
-    height: 64px;
-  }
   .disclaimer{
     display:flex; gap:10px; align-items:flex-start;
     background: var(--sage-tint);
@@ -167,6 +171,19 @@
     margin-top: 24px;
   }
   .disclaimer svg{ flex-shrink:0; margin-top:1px; }
+
+  .privacy-note{
+    display:flex; gap:10px; align-items:flex-start;
+    background: var(--bg);
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 11px 13px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin: 6px 0 22px;
+    line-height:1.5;
+  }
+  .privacy-note svg{ flex-shrink:0; margin-top:1px; }
 
   /* ---------- Form elements ---------- */
   .field{ margin-bottom: 20px; }
@@ -195,6 +212,14 @@
     border-color: var(--teal-2);
     box-shadow: 0 0 0 3px rgba(42,97,90,.14);
   }
+  .field input[aria-invalid="true"]{ border-color: var(--danger); }
+  .field-error{
+    display:none;
+    font-size: 12px;
+    color: var(--danger);
+    margin-top: 6px;
+  }
+  .field-error.visible{ display:block; }
   .row2{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
   .pill-select{ display:flex; gap:8px; flex-wrap:wrap; }
   .pill-select button{
@@ -224,6 +249,7 @@
     font-weight: 500;
     margin-bottom: 12px;
   }
+  .category.urgent-cat h3{ color: var(--danger); }
   .chips{ display:flex; flex-wrap:wrap; gap:9px; }
   .chip{
     display:flex; align-items:center; gap:7px;
@@ -251,6 +277,10 @@
     transform: translateY(-1px);
   }
   .chip.selected .dot{ background: var(--pulse); }
+  .chip.urgent-chip{ border-color: #f0bcbc; }
+  .chip.urgent-chip.selected{ background: var(--danger-tint); border-color: var(--danger); color: var(--danger); }
+  .chip.urgent-chip .dot{ background: #f0bcbc; }
+  .chip.urgent-chip.selected .dot{ background: var(--danger); }
 
   .custom-add{
     display:flex; gap:8px; margin-top:6px;
@@ -339,23 +369,6 @@
     border-radius: 999px;
   }
 
-  .coming-soon{
-    display:flex; gap:14px; align-items:flex-start;
-    background: var(--sage-tint);
-    border: 1px solid #d3e2dc;
-    border-radius: 12px;
-    padding: 18px;
-    margin-top: 22px;
-  }
-  .coming-soon .icon{
-    width:36px; height:36px; border-radius:9px;
-    background: var(--teal);
-    display:flex; align-items:center; justify-content:center;
-    flex-shrink:0;
-  }
-  .coming-soon h4{ font-family:'Fraunces', serif; font-size:15px; font-weight:600; margin:0 0 4px; color: var(--teal); }
-  .coming-soon p{ font-size: 13.5px; color: var(--ink-soft); margin:0; line-height:1.5; }
-
   /* ---------- Follow-up question blocks ---------- */
   .followup-empty{
     font-size: 14px;
@@ -443,6 +456,16 @@
   .urgency-selfcare h4{ color: var(--teal); }
   .urgency-selfcare p, .urgency-selfcare ul{ color: var(--teal-2); }
 
+  .emergency-callout{
+    display:flex; gap:14px; align-items:center;
+    background: var(--danger);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-top: 14px;
+  }
+  .emergency-callout p{ margin:0; font-size:14px; color:#fff; font-weight:500; line-height:1.5; }
+  .emergency-callout a{ color:#fff; text-decoration: underline; }
+
   .med-caution-banner{
     display:flex; gap:12px; align-items:flex-start;
     background: var(--violet-tint);
@@ -522,10 +545,53 @@
     line-height:1.5;
   }
 
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+
   @media (max-width: 520px){
     .panel{ padding: 26px 20px; }
     .row2{ grid-template-columns: 1fr; }
     .hero h1{ font-size:27px; }
+    .pulse-progress svg text{ font-size: 8.5px; }
+  }
+
+  /* ---------- Combo / cross-symptom notes ---------- */
+  .combo-note{
+    display:flex; gap:10px; align-items:flex-start;
+    background: var(--danger-tint);
+    border: 1px solid #f0bcbc;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #7a1e1e;
+    margin-top: 12px;
+    line-height:1.5;
+  }
+  .combo-note.doctor-note{ background: var(--amber-tint); border-color:#e9d5a0; color:#6b4d05; }
+  .combo-note svg{ flex-shrink:0; margin-top:1px; }
+
+  /* ---------- Symptom search ---------- */
+  .search-empty{
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    text-align:center;
+    padding: 18px;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    display:none;
+  }
+  .step-dot{ cursor: default; }
+  .step-dot.reachable{ cursor: pointer; }
+
+  /* ---------- Print export (doctor-visit summary) ---------- */
+  @media print{
+    header.top, .pulse-progress, .nav, .privacy-note, .disclaimer{ display:none !important; }
+    body{ background:#fff; }
+    .app{ padding:0; max-width:100%; }
+    .panel{ box-shadow:none; border:none; padding:0; animation:none; }
+    .final-disclaimer{ border-color:#999; }
   }
 </style>
 </head>
@@ -536,18 +602,18 @@
   <header class="top">
     <div class="brand">
       <div class="brand-mark">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M3 12h4l2 6 4-14 2 8h6" stroke="#f6f8f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h4l2 6 4-14 2 8h6" stroke="#f6f8f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div>
         <div class="brand-name">MediCheck</div>
         <div class="brand-tag">Symptom intake</div>
       </div>
     </div>
-    <div class="eyebrow" id="stepLabel">Step 0 of 4</div>
+    <div class="eyebrow" id="stepLabel" aria-live="polite">Step 0 of 4</div>
   </header>
 
-  <div class="pulse-progress">
-    <svg viewBox="0 0 680 46" preserveAspectRatio="none">
+  <nav class="pulse-progress" aria-label="Progress through intake steps">
+    <svg viewBox="0 0 680 46" preserveAspectRatio="xMidYMid meet">
       <path class="pulse-line" d="M0,23 L120,23 L145,6 L165,40 L185,23 L340,23 L365,6 L385,40 L405,23 L560,23 L585,6 L605,40 L625,23 L680,23"/>
       <path class="pulse-line-fill" id="pulseFill" d="M0,23 L120,23 L145,6 L165,40 L185,23 L340,23 L365,6 L385,40 L405,23 L560,23 L585,6 L605,40 L625,23 L680,23"/>
       <g class="step-dot" data-step="1" transform="translate(20,23)">
@@ -563,7 +629,7 @@
         <circle r="7"/><text y="-14">RESULT</text>
       </g>
     </svg>
-  </div>
+  </nav>
 
   <!-- STEP 0: Welcome -->
   <div class="step-wrap visible" id="step-0">
@@ -573,10 +639,14 @@
         <h1 style="margin-top:10px;">Tell us what's going on. We'll help you make sense of it.</h1>
         <p class="sub">Answer a few quick questions about how you're feeling. It takes about two minutes — no medical jargon required.</p>
         <div class="disclaimer">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#163f3a" stroke-width="1.6"/><path d="M12 8v5" stroke="#163f3a" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="16" r="0.9" fill="#163f3a"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="#163f3a" stroke-width="1.6"/><path d="M12 8v5" stroke="#163f3a" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="16" r="0.9" fill="#163f3a"/></svg>
           <span>This tool offers general guidance only and does not replace a visit to a qualified doctor. If this is an emergency, contact local emergency services right away.</span>
         </div>
-        <div class="nav" style="justify-content:flex-start; margin-top:26px;">
+        <div class="privacy-note">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" stroke="#55655e" stroke-width="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="#55655e" stroke-width="1.5"/></svg>
+          <span>What you enter (name, age, symptoms, medications) stays in this browser tab only, so you can resume if you refresh. Nothing is sent to a server or stored once you close the tab.</span>
+        </div>
+        <div class="nav" style="justify-content:flex-start; margin-top:6px;">
           <button class="btn btn-primary" onclick="goTo(1)">Start &nbsp;→</button>
         </div>
       </div>
@@ -592,42 +662,49 @@
 
       <div style="margin-top:26px;">
         <div class="field">
-          <label>Full name</label>
-          <input type="text" id="fName" placeholder="e.g. Dishank Solanki">
+          <label for="fName">Full name</label>
+          <input type="text" id="fName" placeholder="e.g. Dishank Solanki" aria-required="true" aria-describedby="fNameError">
+          <div class="field-error" id="fNameError">Please enter your name.</div>
         </div>
         <div class="row2">
           <div class="field">
-            <label>Age</label>
-            <input type="number" id="fAge" placeholder="e.g. 29" min="0" max="120">
+            <label for="fAge">Age</label>
+            <input type="number" id="fAge" placeholder="e.g. 29" min="0" max="120" aria-required="true" aria-describedby="fAgeError">
+            <div class="field-error" id="fAgeError">Please enter a valid age (0–120).</div>
           </div>
           <div class="field">
-            <label>Gender</label>
-            <div class="pill-select" id="genderSelect">
-              <button type="button" data-val="Female">Female</button>
-              <button type="button" data-val="Male">Male</button>
-              <button type="button" data-val="Other">Other</button>
+            <label id="genderLabel">Gender</label>
+            <div class="pill-select" id="genderSelect" role="group" aria-labelledby="genderLabel">
+              <button type="button" data-val="Female" aria-pressed="false">Female</button>
+              <button type="button" data-val="Male" aria-pressed="false">Male</button>
+              <button type="button" data-val="Other" aria-pressed="false">Other</button>
             </div>
           </div>
         </div>
         <div class="field">
-          <label>Existing conditions <span class="hint">(optional — select any that apply)</span></label>
-          <div class="chips" id="conditionChips" style="margin-top:2px;"></div>
+          <label id="condLabel">Existing conditions <span class="hint">(optional — select any that apply)</span></label>
+          <div class="chips" id="conditionChips" role="group" aria-labelledby="condLabel" style="margin-top:2px;"></div>
           <div class="custom-add" style="margin-top:10px;">
+            <label for="customConditionInput" class="sr-only">Add a condition not listed</label>
             <input type="text" id="customConditionInput" placeholder="Don't see it? Type your own">
             <button type="button" onclick="addCustomCondition()">Add</button>
           </div>
         </div>
         <div class="field">
-          <label>Currently taking any medication? <span class="hint">(optional)</span></label>
+          <label for="fMeds">Currently taking any medication? <span class="hint">(optional)</span></label>
           <input type="text" id="fMeds" placeholder="Leave blank if none">
         </div>
         <div class="field">
-          <label>Pregnant or breastfeeding? <span class="hint">(optional — affects medicine guidance)</span></label>
-          <div class="pill-select" id="pregSelect">
-            <button type="button" data-val="Yes">Yes</button>
-            <button type="button" data-val="No">No</button>
-            <button type="button" data-val="Not applicable">N/A</button>
+          <label id="pregLabel">Pregnant or breastfeeding? <span class="hint">(optional — affects medicine guidance)</span></label>
+          <div class="pill-select" id="pregSelect" role="group" aria-labelledby="pregLabel">
+            <button type="button" data-val="Yes" aria-pressed="false">Yes</button>
+            <button type="button" data-val="No" aria-pressed="false">No</button>
+            <button type="button" data-val="Not applicable" aria-pressed="false">N/A</button>
           </div>
+        </div>
+        <div class="privacy-note" style="margin-top:0;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" stroke="#55655e" stroke-width="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="#55655e" stroke-width="1.5"/></svg>
+          <span>These are health details, so treat this device as private — this info is saved only to this browser tab's session and never leaves it.</span>
         </div>
       </div>
 
@@ -645,14 +722,21 @@
       <h2 style="margin-top:8px;">What are you experiencing?</h2>
       <p class="sub">Pick everything that applies. You can select as many as you need.</p>
 
-      <div id="symptomCategories" style="margin-top:26px;"></div>
+      <div class="field" style="margin-top:24px; margin-bottom:6px;">
+        <label for="symptomSearch">Search symptoms</label>
+        <input type="text" id="symptomSearch" placeholder="Type to filter, e.g. cough, rash, dizzy…" oninput="filterSymptomChips(this.value)" autocomplete="off">
+      </div>
+
+      <div id="symptomCategories" style="margin-top:14px;"></div>
+      <div class="search-empty" id="searchEmpty">No matches — add it below instead.</div>
 
       <div class="custom-add">
+        <label for="customSymptomInput" class="sr-only">Add a symptom not listed</label>
         <input type="text" id="customSymptomInput" placeholder="Don't see it? Type your own symptom">
         <button type="button" onclick="addCustomSymptom()">Add</button>
       </div>
 
-      <div class="selection-count" id="selectionCount">0 symptoms selected</div>
+      <div class="selection-count" id="selectionCount" aria-live="polite">0 symptoms selected</div>
 
       <div class="nav">
         <button class="btn btn-ghost" onclick="goTo(1)">← Back</button>
@@ -666,7 +750,7 @@
     <div class="panel">
       <span class="eyebrow">3 of 4</span>
       <h2 style="margin-top:8px;">A few follow-up questions</h2>
-      <p class="sub">These change based on what you selected in the last step.</p>
+      <p class="sub">These change based on what you selected in the last step. Unanswered questions are treated cautiously in your result.</p>
 
       <div id="followupQuestions" style="margin-top:24px;"></div>
 
@@ -693,13 +777,16 @@
       <div id="suggestionResults"></div>
 
       <div class="final-disclaimer">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="9" stroke="#55655e" stroke-width="1.6"/><path d="M12 8v5" stroke="#55655e" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="16" r="0.9" fill="#55655e"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="#55655e" stroke-width="1.6"/><path d="M12 8v5" stroke="#55655e" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="16" r="0.9" fill="#55655e"/></svg>
         <span>MediCheck is a self-help information tool, not a medical device or diagnostic service. It does not know your full medical history and can be wrong. The "may help" medicines listed are common over-the-counter categories, not a prescription — always read the package label and confirm the correct product and dose with a pharmacist or doctor before taking anything, especially for children, during pregnancy/breastfeeding, or alongside other medication. Seek emergency care immediately if you feel this is serious.</span>
       </div>
 
       <div class="nav">
         <button class="btn btn-ghost" onclick="goTo(3)">← Back</button>
-        <button class="btn btn-primary" onclick="restart()">Start over</button>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-ghost" onclick="window.print()" style="border:1.5px solid var(--line);">🖨 Print / save for your doctor</button>
+          <button class="btn btn-primary" onclick="restart()">Start over</button>
+        </div>
       </div>
     </div>
   </div>
@@ -707,10 +794,24 @@
 </div>
 
 <script>
+  /* =========================================================================
+     UTIL
+  ========================================================================= */
+  function escapeHtml(str){
+    if(str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   const SYMPTOM_CATEGORIES = [
+    { name: "Seek care now", items: ["Chest pain or pressure", "Fainting or loss of consciousness", "Severe swelling of face/throat", "Confusion or trouble speaking", "Shortness of breath"], urgent: true },
     { name: "General", items: ["Fever", "Chills", "Fatigue", "Body ache", "Loss of appetite", "Night sweats"] },
-    { name: "Head", items: ["Headache", "Dizziness", "Migraine", "Blurred vision"] },
-    { name: "Respiratory", items: ["Cough", "Cold", "Sore throat", "Runny nose", "Sneezing", "Shortness of breath"] },
+    { name: "Head", items: ["Headache", "Dizziness", "Migraine", "Blurred vision", "Stiff neck"] },
+    { name: "Respiratory", items: ["Cough", "Cold", "Sore throat", "Runny nose", "Sneezing"] },
     { name: "Stomach & Digestion", items: ["Stomach pain", "Nausea", "Vomiting", "Diarrhea", "Constipation", "Bloating"] },
     { name: "Body & Muscle", items: ["Joint pain", "Muscle pain", "Back pain", "Neck pain"] },
     { name: "Skin", items: ["Rash", "Itching", "Swelling", "Redness"] },
@@ -722,23 +823,55 @@
     "Weakness", "Allergy", "Skin infection", "Minor injury", "None of these"
   ];
 
+  const STORAGE_KEY = 'medicheck_session_v1';
+
   const state = {
     name: "", age: "", gender: "", pregnant: "",
     conditions: new Set(), meds: "",
     symptoms: new Set(),
     followupAnswers: {},
-    currentStep: 0
+    currentStep: 0,
+    maxStepReached: 0
   };
+
+  /* =========================================================================
+     SESSION PERSISTENCE (tab-local only — never sent anywhere)
+  ========================================================================= */
+  function saveSession(){
+    try{
+      const serializable = {
+        name: state.name, age: state.age, gender: state.gender, pregnant: state.pregnant,
+        conditions: [...state.conditions], meds: state.meds,
+        symptoms: [...state.symptoms],
+        followupAnswers: Object.fromEntries(Object.entries(state.followupAnswers).map(([k,v]) => [k, [...v]])),
+        currentStep: state.currentStep,
+        maxStepReached: state.maxStepReached
+      };
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
+    }catch(e){ /* storage unavailable — fail silently, app still works in-memory */ }
+  }
+
+  function loadSession(){
+    try{
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){ return null; }
+  }
+
+  function clearSession(){
+    try{ sessionStorage.removeItem(STORAGE_KEY); }catch(e){}
+  }
 
   // ---- Render symptom chips ----
   const catWrap = document.getElementById('symptomCategories');
   SYMPTOM_CATEGORIES.forEach(cat => {
     const block = document.createElement('div');
-    block.className = 'category';
+    block.className = 'category' + (cat.urgent ? ' urgent-cat' : '');
     const chipsHtml = cat.items.map(s =>
-      `<button type="button" class="chip" data-symptom="${s}" onclick="toggleSymptom(this,'${s.replace(/'/g,"\\'")}')"><span class="dot"></span>${s}</button>`
+      `<button type="button" class="chip${cat.urgent ? ' urgent-chip' : ''}" data-symptom="${escapeHtml(s)}" aria-pressed="false" onclick="toggleSymptom(this,'${s.replace(/'/g,"\\'")}')"><span class="dot"></span>${escapeHtml(s)}</button>`
     ).join('');
-    block.innerHTML = `<h3>${cat.name}</h3><div class="chips">${chipsHtml}</div>`;
+    block.innerHTML = `<h3>${escapeHtml(cat.name)}</h3><div class="chips" role="group" aria-label="${escapeHtml(cat.name)} symptoms">${chipsHtml}</div>`;
     catWrap.appendChild(block);
   });
 
@@ -749,7 +882,8 @@
     chip.type = 'button';
     chip.className = 'chip';
     chip.setAttribute('data-condition', c);
-    chip.innerHTML = `<span class="dot"></span>${c}`;
+    chip.setAttribute('aria-pressed', 'false');
+    chip.innerHTML = `<span class="dot"></span>${escapeHtml(c)}`;
     chip.onclick = () => toggleCondition(chip, c);
     condWrap.appendChild(chip);
   });
@@ -757,33 +891,38 @@
   function toggleCondition(btn, name){
     if(name === 'None of these'){
       state.conditions.clear();
-      document.querySelectorAll('#conditionChips .chip').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('#conditionChips .chip').forEach(c => { c.classList.remove('selected'); c.setAttribute('aria-pressed','false'); });
       state.conditions.add(name);
       btn.classList.add('selected');
+      btn.setAttribute('aria-pressed','true');
+      saveSession();
       return;
     }
     const noneChip = [...document.querySelectorAll('#conditionChips .chip')].find(c => c.dataset.condition === 'None of these');
     if(state.conditions.has('None of these')){
       state.conditions.delete('None of these');
-      if(noneChip) noneChip.classList.remove('selected');
+      if(noneChip){ noneChip.classList.remove('selected'); noneChip.setAttribute('aria-pressed','false'); }
     }
     if(state.conditions.has(name)){
       state.conditions.delete(name);
       btn.classList.remove('selected');
+      btn.setAttribute('aria-pressed','false');
     } else {
       state.conditions.add(name);
       btn.classList.add('selected');
+      btn.setAttribute('aria-pressed','true');
     }
+    saveSession();
   }
 
   function addCustomCondition(){
     const input = document.getElementById('customConditionInput');
-    const val = input.value.trim();
+    const val = input.value.trim().slice(0, 60);
     if(!val) return;
     if(state.conditions.has('None of these')){
       state.conditions.delete('None of these');
       const noneChip = [...document.querySelectorAll('#conditionChips .chip')].find(c => c.dataset.condition === 'None of these');
-      if(noneChip) noneChip.classList.remove('selected');
+      if(noneChip){ noneChip.classList.remove('selected'); noneChip.setAttribute('aria-pressed','false'); }
     }
     if(!state.conditions.has(val)){
       state.conditions.add(val);
@@ -791,11 +930,13 @@
       chip.type = 'button';
       chip.className = 'chip selected';
       chip.setAttribute('data-condition', val);
-      chip.innerHTML = `<span class="dot"></span>${val}`;
+      chip.setAttribute('aria-pressed', 'true');
+      chip.innerHTML = `<span class="dot"></span>${escapeHtml(val)}`;
       chip.onclick = () => toggleCondition(chip, val);
       condWrap.insertBefore(chip, condWrap.lastElementChild.nextSibling);
     }
     input.value = '';
+    saveSession();
   }
   document.getElementById('customConditionInput').addEventListener('keydown', e => {
     if(e.key === 'Enter'){ e.preventDefault(); addCustomCondition(); }
@@ -805,16 +946,19 @@
     if(state.symptoms.has(name)){
       state.symptoms.delete(name);
       btn.classList.remove('selected');
+      btn.setAttribute('aria-pressed','false');
     } else {
       state.symptoms.add(name);
       btn.classList.add('selected');
+      btn.setAttribute('aria-pressed','true');
     }
     updateSelectionCount();
+    saveSession();
   }
 
   function addCustomSymptom(){
     const input = document.getElementById('customSymptomInput');
-    const val = input.value.trim();
+    const val = input.value.trim().slice(0, 60);
     if(!val) return;
     if(!state.symptoms.has(val)){
       state.symptoms.add(val);
@@ -824,12 +968,14 @@
       chip.type = 'button';
       chip.className = 'chip selected';
       chip.setAttribute('data-symptom', val);
-      chip.innerHTML = `<span class="dot"></span>${val}`;
+      chip.setAttribute('aria-pressed', 'true');
+      chip.innerHTML = `<span class="dot"></span>${escapeHtml(val)}`;
       chip.onclick = () => toggleSymptom(chip, val);
       chipsDiv.appendChild(chip);
     }
     input.value = '';
     updateSelectionCount();
+    saveSession();
   }
   document.getElementById('customSymptomInput').addEventListener('keydown', e => {
     if(e.key === 'Enter'){ e.preventDefault(); addCustomSymptom(); }
@@ -846,33 +992,53 @@
   // ---- Gender pills ----
   document.querySelectorAll('#genderSelect button').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('#genderSelect button').forEach(b => b.classList.remove('selected'));
+      document.querySelectorAll('#genderSelect button').forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); });
       btn.classList.add('selected');
+      btn.setAttribute('aria-pressed','true');
       state.gender = btn.dataset.val;
+      saveSession();
     });
   });
 
   // ---- Pregnancy pills ----
   document.querySelectorAll('#pregSelect button').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('#pregSelect button').forEach(b => b.classList.remove('selected'));
+      document.querySelectorAll('#pregSelect button').forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); });
       btn.classList.add('selected');
+      btn.setAttribute('aria-pressed','true');
       state.pregnant = btn.dataset.val;
+      saveSession();
+    });
+  });
+
+  ['fName','fAge','fMeds'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      state[id === 'fName' ? 'name' : id === 'fAge' ? 'age' : 'meds'] = document.getElementById(id).value;
+      saveSession();
     });
   });
 
   // ---- Step navigation ----
   function goTo(step){
+    // Step 2 requires name+age to already be valid before jumping ahead via a dot.
+    if(step > state.maxStepReached + 1) return;
+
     document.querySelectorAll('.step-wrap').forEach(el => el.classList.remove('visible'));
     document.getElementById('step-' + step).classList.add('visible');
     state.currentStep = step;
+    state.maxStepReached = Math.max(state.maxStepReached, step);
     document.getElementById('stepLabel').textContent = `Step ${step} of 4`;
 
     document.querySelectorAll('.step-dot').forEach(dot => {
       const s = parseInt(dot.dataset.step);
       dot.classList.remove('active','done');
+      dot.removeAttribute('aria-current');
       if(s < step) dot.classList.add('done');
-      else if(s === step) dot.classList.add('active');
+      else if(s === step){ dot.classList.add('active'); dot.setAttribute('aria-current','step'); }
+      const reachable = s <= state.maxStepReached;
+      dot.classList.toggle('reachable', reachable);
+      dot.setAttribute('tabindex', reachable ? '0' : '-1');
+      dot.setAttribute('aria-disabled', reachable ? 'false' : 'true');
     });
     const fill = document.getElementById('pulseFill');
     const total = 1000;
@@ -882,22 +1048,75 @@
 
     if(step === 3) renderFollowupQuestions();
     if(step === 4){ renderFinalSummary(); renderSuggestions(); }
+    saveSession();
     window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  // Step dots double as navigation once a step has been visited.
+  document.querySelectorAll('.step-dot').forEach(dot => {
+    dot.setAttribute('role', 'button');
+    dot.addEventListener('click', () => {
+      const s = parseInt(dot.dataset.step);
+      if(s <= state.maxStepReached) goTo(s);
+    });
+    dot.addEventListener('keydown', (e) => {
+      if((e.key === 'Enter' || e.key === ' ')){
+        e.preventDefault();
+        const s = parseInt(dot.dataset.step);
+        if(s <= state.maxStepReached) goTo(s);
+      }
+    });
+  });
+
+  function filterSymptomChips(query){
+    const q = query.trim().toLowerCase();
+    let anyVisible = false;
+    document.querySelectorAll('#symptomCategories .category').forEach(cat => {
+      let catHasMatch = false;
+      cat.querySelectorAll('.chip').forEach(chip => {
+        const text = chip.textContent.trim().toLowerCase();
+        const match = q === '' || text.includes(q);
+        chip.style.display = match ? '' : 'none';
+        if(match) catHasMatch = true;
+      });
+      cat.style.display = catHasMatch ? '' : 'none';
+      if(catHasMatch) anyVisible = true;
+    });
+    document.getElementById('searchEmpty').style.display = (q !== '' && !anyVisible) ? 'block' : 'none';
+  }
+
+  function setFieldError(inputId, errorId, show){
+    const input = document.getElementById(inputId);
+    const err = document.getElementById(errorId);
+    input.setAttribute('aria-invalid', show ? 'true' : 'false');
+    err.classList.toggle('visible', show);
   }
 
   function validateAndGo(step){
     if(step === 2){
       state.name = document.getElementById('fName').value.trim();
-      state.age = document.getElementById('fAge').value.trim();
+      const ageRaw = document.getElementById('fAge').value.trim();
+      state.age = ageRaw;
       state.meds = document.getElementById('fMeds').value.trim();
-      if(!state.name || !state.age){
-        alert('Please enter your name and age to continue.');
+
+      const ageNum = Number(ageRaw);
+      const nameOk = state.name.length > 0;
+      const ageOk = ageRaw.length > 0 && !isNaN(ageNum) && ageNum >= 0 && ageNum <= 120;
+
+      setFieldError('fName', 'fNameError', !nameOk);
+      setFieldError('fAge', 'fAgeError', !ageOk);
+
+      if(!nameOk || !ageOk){
+        (!nameOk ? document.getElementById('fName') : document.getElementById('fAge')).focus();
         return;
       }
     }
     goTo(step);
   }
 
+  /* =========================================================================
+     FOLLOW-UP QUESTION BANK
+  ========================================================================= */
   const QUESTION_BANK = {
     "Fever": [
       { id: "temp", label: "How high is the temperature?", type: "single",
@@ -927,7 +1146,7 @@
     ],
     "Headache": [
       { id: "type", label: "How would you describe the pain?", type: "single",
-        options: ["Throbbing", "Dull / pressure", "Sharp / stabbing"] },
+        options: ["Throbbing", "Dull / pressure", "Sharp / stabbing", "Worst headache of my life / sudden onset"] },
       { id: "location", label: "Where is it?", type: "single",
         options: ["One side", "Both sides", "Back of head", "Whole head"] },
       { id: "duration", label: "How long has it lasted?", type: "single",
@@ -935,11 +1154,11 @@
     ],
     "Stomach pain": [
       { id: "location", label: "Where exactly is the pain?", type: "single",
-        options: ["Upper stomach", "Lower stomach", "All over"] },
+        options: ["Upper stomach", "Lower stomach", "Lower right abdomen", "All over"] },
       { id: "food", label: "Does it relate to eating?", type: "single",
         options: ["Worse after eating", "Better after eating", "No relation"] },
       { id: "extra", label: "Any other symptoms with it?", type: "multi",
-        options: ["Vomiting", "Diarrhea", "Bloating", "None"] }
+        options: ["Vomiting", "Diarrhea", "Bloating", "Fever", "None"] }
     ],
     "Nausea": [
       { id: "duration", label: "How long have you felt this way?", type: "single",
@@ -962,6 +1181,20 @@
     "Rash": [
       { id: "itch", label: "Is it itchy?", type: "single", options: ["Yes", "No"] },
       { id: "spread", label: "Is it spreading?", type: "single", options: ["Yes", "No", "Not sure"] }
+    ],
+    "Shortness of breath": [
+      { id: "severity", label: "How severe is it, right now?", type: "single",
+        options: ["Mild, only with exertion", "Moderate, even with normal activity", "Severe, even at rest"] },
+      { id: "onset", label: "How did it start?", type: "single",
+        options: ["Gradually, over days", "Suddenly, in minutes"] }
+    ],
+    "Chest pain or pressure": [
+      { id: "quality", label: "How would you describe it?", type: "single",
+        options: ["Tight / pressure / squeezing", "Sharp, worse with breathing", "Dull ache"] },
+      { id: "spread", label: "Does it spread anywhere?", type: "single",
+        options: ["To arm, jaw, or back", "Stays in one spot", "Not sure"] },
+      { id: "extra", label: "Anything else with it?", type: "multi",
+        options: ["Shortness of breath", "Sweating", "Nausea", "Dizziness", "None"] }
     ]
   };
 
@@ -972,6 +1205,18 @@
       options: ["Mild", "Moderate", "Severe"] }
   ];
 
+  // Symptoms whose entry alone is an immediate red flag — no nuance needed.
+  const ALWAYS_EMERGENCY_SYMPTOMS = new Set([
+    "Fainting or loss of consciousness",
+    "Severe swelling of face/throat",
+    "Confusion or trouble speaking"
+  ]);
+
+  // Symptoms that need a follow-up answer before we know severity. If the
+  // person hasn't answered yet, we default to the doctor tier rather than
+  // reassuring them — matching the "escalate rather than reassure" rule.
+  const REQUIRES_ANSWER_SYMPTOMS = new Set(["Shortness of breath", "Chest pain or pressure"]);
+
   function renderFollowupQuestions(){
     const container = document.getElementById('followupQuestions');
     container.innerHTML = '';
@@ -981,7 +1226,55 @@
       return;
     }
 
+    // One general trend question, not tied to a single symptom.
+    {
+      const key = 'GLOBAL::trend';
+      if(!state.followupAnswers[key]) state.followupAnswers[key] = new Set();
+      const answerSet = state.followupAnswers[key];
+
+      const block = document.createElement('div');
+      block.className = 'followup-symptom-block';
+      const title = document.createElement('div');
+      title.className = 'followup-symptom-title';
+      title.textContent = 'Overall, since it started';
+      block.appendChild(title);
+
+      const qBlock = document.createElement('div');
+      qBlock.className = 'q-block';
+      const qLabel = document.createElement('div');
+      qLabel.className = 'q-label';
+      qLabel.textContent = 'Compared to when it started, how are things trending?';
+      qBlock.appendChild(qLabel);
+
+      const optWrap = document.createElement('div');
+      optWrap.className = 'q-options';
+      optWrap.setAttribute('role', 'group');
+      optWrap.setAttribute('aria-label', 'Overall trend');
+      ['Getting better', 'About the same', 'Getting worse'].forEach(opt => {
+        const optBtn = document.createElement('button');
+        optBtn.type = 'button';
+        optBtn.className = 'q-option';
+        optBtn.textContent = opt;
+        const isSelected = answerSet.has(opt);
+        optBtn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+        if(isSelected) optBtn.classList.add('selected');
+        optBtn.addEventListener('click', () => {
+          optWrap.querySelectorAll('.q-option').forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); });
+          answerSet.clear();
+          answerSet.add(opt);
+          optBtn.classList.add('selected');
+          optBtn.setAttribute('aria-pressed','true');
+          saveSession();
+        });
+        optWrap.appendChild(optBtn);
+      });
+      qBlock.appendChild(optWrap);
+      block.appendChild(qBlock);
+      container.appendChild(block);
+    }
+
     [...state.symptoms].forEach(sym => {
+      if(ALWAYS_EMERGENCY_SYMPTOMS.has(sym)) return; // no follow-up needed, always urgent
       const questions = QUESTION_BANK[sym] || DEFAULT_QUESTIONS;
 
       const block = document.createElement('div');
@@ -1002,34 +1295,42 @@
 
         const qLabel = document.createElement('div');
         qLabel.className = 'q-label';
-        qLabel.innerHTML = q.label + (q.type === 'multi' ? ' <span class="q-hint">(select any)</span>' : '');
+        qLabel.innerHTML = escapeHtml(q.label) + (q.type === 'multi' ? ' <span class="q-hint">(select any)</span>' : '');
         qBlock.appendChild(qLabel);
 
         const optWrap = document.createElement('div');
         optWrap.className = 'q-options';
+        optWrap.setAttribute('role', 'group');
+        optWrap.setAttribute('aria-label', q.label);
 
         q.options.forEach(opt => {
           const optBtn = document.createElement('button');
           optBtn.type = 'button';
           optBtn.className = 'q-option';
           optBtn.textContent = opt;
-          if(answerSet.has(opt)) optBtn.classList.add('selected');
+          const isSelected = answerSet.has(opt);
+          optBtn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+          if(isSelected) optBtn.classList.add('selected');
 
           optBtn.addEventListener('click', () => {
             if(q.type === 'single'){
-              optWrap.querySelectorAll('.q-option').forEach(b => b.classList.remove('selected'));
+              optWrap.querySelectorAll('.q-option').forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); });
               answerSet.clear();
               answerSet.add(opt);
               optBtn.classList.add('selected');
+              optBtn.setAttribute('aria-pressed','true');
             } else {
               if(answerSet.has(opt)){
                 answerSet.delete(opt);
                 optBtn.classList.remove('selected');
+                optBtn.setAttribute('aria-pressed','false');
               } else {
                 answerSet.add(opt);
                 optBtn.classList.add('selected');
+                optBtn.setAttribute('aria-pressed','true');
               }
             }
+            saveSession();
           });
 
           optWrap.appendChild(optBtn);
@@ -1046,13 +1347,13 @@
   function renderFinalSummary(){
     const el = document.getElementById('finalSummary');
     el.innerHTML = `
-      <div class="summary-row"><span class="k">Name</span><span class="v">${state.name || '—'}</span></div>
-      <div class="summary-row"><span class="k">Age</span><span class="v">${state.age || '—'}</span></div>
-      <div class="summary-row"><span class="k">Gender</span><span class="v">${state.gender || '—'}</span></div>
-      <div class="summary-row"><span class="k">Pregnant / breastfeeding</span><span class="v">${state.pregnant || '—'}</span></div>
-      <div class="summary-row"><span class="k">Existing conditions</span><span class="v">${state.conditions.size ? `<span class="tag-list">${[...state.conditions].map(c=>`<span>${c}</span>`).join('')}</span>` : 'None reported'}</span></div>
-      <div class="summary-row"><span class="k">Medication</span><span class="v">${state.meds || 'None reported'}</span></div>
-      <div class="summary-row"><span class="k">Symptoms</span><span class="v"><span class="tag-list">${[...state.symptoms].map(s=>`<span>${s}</span>`).join('')}</span></span></div>
+      <div class="summary-row"><span class="k">Name</span><span class="v">${escapeHtml(state.name) || '—'}</span></div>
+      <div class="summary-row"><span class="k">Age</span><span class="v">${escapeHtml(state.age) || '—'}</span></div>
+      <div class="summary-row"><span class="k">Gender</span><span class="v">${escapeHtml(state.gender) || '—'}</span></div>
+      <div class="summary-row"><span class="k">Pregnant / breastfeeding</span><span class="v">${escapeHtml(state.pregnant) || '—'}</span></div>
+      <div class="summary-row"><span class="k">Existing conditions</span><span class="v">${state.conditions.size ? `<span class="tag-list">${[...state.conditions].map(c=>`<span>${escapeHtml(c)}</span>`).join('')}</span>` : 'None reported'}</span></div>
+      <div class="summary-row"><span class="k">Medication</span><span class="v">${escapeHtml(state.meds) || 'None reported'}</span></div>
+      <div class="summary-row"><span class="k">Symptoms</span><span class="v"><span class="tag-list">${[...state.symptoms].map(s=>`<span>${escapeHtml(s)}</span>`).join('')}</span></span></div>
     `;
   }
 
@@ -1067,19 +1368,17 @@
         general "commonly associated with" causes — phrased as possibilities,
         not conclusions.
      2. Emergency red-flags are checked FIRST, before anything else, and
-        override every other rule. If uncertain, the engine escalates rather
-        than reassures.
+        override every other rule. If uncertain (an unanswered severity
+        question on a symptom that needs one), the engine escalates to at
+        least the doctor tier rather than reassuring.
      3. The "medicines that may help" list names common OTC DRUG CATEGORIES
         (generic names, e.g. "paracetamol/acetaminophen") — never a brand
         steer, never a dose or frequency, and every entry carries the
         standard "check the label / ask a pharmacist" instruction plus any
-        well-known contraindication. This mirrors how consumer health sites
-        (NHS, Mayo Clinic, WebMD) present OTC info: category + caution,
-        not a prescription.
+        well-known contraindication.
      4. If the person reported being pregnant/breastfeeding or having an
         existing condition, an extra caution banner is shown up top telling
-        them to check with a pharmacist/doctor before taking anything new —
-        the tool does not try to cross-check individual drug safety itself.
+        them to check with a pharmacist/doctor before taking anything new.
      5. Every symptom block also carries its own "see a doctor if" escalation
         list, independent of the overall banner, so partial worsening is
         still flagged even if the overall picture looks mild today.
@@ -1185,11 +1484,25 @@
       ],
       notIf: "Don't apply steroid cream to a rash that might be infected (spreading redness, warmth, pus) — see a doctor first.",
       seeDoctorIf: ["It spreads quickly or comes with swelling of the face/throat", "It's accompanied by fever or blistering", "It doesn't improve after a few days"]
+    },
+    "Shortness of breath": {
+      causes: ["Anxiety or a panic response", "Asthma or airway irritation", "A chest infection", "A more serious heart or lung cause, which is why severity matters here"],
+      selfCare: ["Sit upright rather than lying flat", "Try slow, pursed-lip breathing", "Move away from any irritant (smoke, strong fumes, allergens)"],
+      medicines: [],
+      notIf: "This is not a symptom to self-medicate for — the right treatment depends entirely on the cause, which needs a proper assessment.",
+      seeDoctorIf: ["Breathing is difficult even at rest", "Lips or fingertips look bluish", "It came on suddenly and severely", "It comes with chest pain, fainting, or severe wheeze"]
+    },
+    "Chest pain or pressure": {
+      causes: ["Muscle strain or costochondritis (chest wall pain)", "Acid reflux", "Anxiety", "A heart-related cause, which is why this always needs prompt evaluation"],
+      selfCare: ["Rest and avoid exertion until you've been checked", "Avoid this being something you wait out at home"],
+      medicines: [],
+      notIf: "Don't self-medicate chest pain, including with painkillers — get it evaluated first, since the cause changes what's safe.",
+      seeDoctorIf: ["Pain is tight, crushing, or spreads to the arm/jaw/back", "It comes with sweating, nausea, dizziness, or breathlessness", "It started suddenly or feels different from before — treat this as urgent, not a wait-and-see symptom"]
     }
   };
 
-  // Symptoms that are themselves red flags regardless of follow-up answers
-  const EMERGENCY_SYMPTOMS = new Set(["Shortness of breath"]);
+  // Symptoms whose entry alone is a red flag, regardless of any follow-up.
+  const EMERGENCY_SYMPTOMS = ALWAYS_EMERGENCY_SYMPTOMS;
 
   // symptom -> { questionId, triggerValues[] } combos that escalate to emergency
   const EMERGENCY_ANSWER_RULES = [
@@ -1197,7 +1510,10 @@
     { symptom: "Cough", questionId: "type", values: ["Blood in mucus"] },
     { symptom: "Vomiting", questionId: "frequency", values: ["Repeatedly / can't keep anything down"] },
     { symptom: "Diarrhea", questionId: "extra", values: ["Blood"] },
-    { symptom: "Headache", questionId: "type", values: ["Sharp / stabbing"] }
+    { symptom: "Headache", questionId: "type", values: ["Worst headache of my life / sudden onset"] },
+    { symptom: "Shortness of breath", questionId: "severity", values: ["Moderate, even with normal activity", "Severe, even at rest"] },
+    { symptom: "Chest pain or pressure", questionId: "quality", values: ["Tight / pressure / squeezing"] },
+    { symptom: "Chest pain or pressure", questionId: "spread", values: ["To arm, jaw, or back"] }
   ];
 
   // symptom -> combos that escalate to "see a doctor soon" (below emergency)
@@ -1207,8 +1523,65 @@
     { symptom: "Diarrhea", questionId: "frequency", values: ["More than 5 times"] },
     { symptom: "Rash", questionId: "spread", values: ["Yes"] },
     { symptom: "Cold", questionId: "duration", values: ["More than a week"] },
-    { symptom: "Cough", questionId: "duration", values: ["More than a week"] }
+    { symptom: "Cough", questionId: "duration", values: ["More than a week"] },
+    { symptom: "Stomach pain", questionId: "location", values: ["Lower right abdomen"] },
+    { symptom: "Shortness of breath", questionId: "severity", values: ["Mild, only with exertion"] },
+    { symptom: "Shortness of breath", questionId: "onset", values: ["Suddenly, in minutes"] },
+    { symptom: "Chest pain or pressure", questionId: "quality", values: ["Sharp, worse with breathing", "Dull ache"] }
   ];
+
+  // Combinations that are riskier together than any single symptom suggests —
+  // this is the kind of pattern a single-symptom checklist misses entirely.
+  const COMBO_RULES = [
+    { symptoms: ["Fever", "Stiff neck"], level: 'emergency',
+      note: "Fever together with a stiff neck can be an early sign of meningitis and needs same-day medical care." },
+    { symptoms: ["Fever", "Confusion or trouble speaking"], level: 'emergency',
+      note: "Fever combined with confusion needs urgent evaluation rather than watching and waiting." },
+    { symptoms: ["Chest pain or pressure", "Shortness of breath"], level: 'emergency',
+      note: "Chest pain together with breathlessness raises concern for a heart or lung cause and needs urgent evaluation." },
+    { symptoms: ["Vomiting", "Diarrhea"], level: 'doctor',
+      note: "Vomiting and diarrhea together raise the risk of dehydration — keep fluids up and get checked sooner if either continues past a day." },
+    { symptoms: ["Headache", "Blurred vision"], level: 'doctor',
+      note: "A headache with vision changes is worth a same-day check rather than the usual wait-and-see." }
+  ];
+
+  function computeComboFlags(){
+    const notes = [];
+    let level = 'selfcare';
+    const rank = { selfcare: 0, doctor: 1, emergency: 2 };
+    COMBO_RULES.forEach(rule => {
+      if(rule.symptoms.every(s => state.symptoms.has(s))){
+        notes.push({ text: rule.note, level: rule.level });
+        if(rank[rule.level] > rank[level]) level = rule.level;
+      }
+    });
+    return { level, notes };
+  }
+
+  function getAgeYears(){
+    const n = Number(state.age);
+    return (state.age !== '' && !isNaN(n)) ? n : null;
+  }
+
+  // Presentation and risk both shift at the age extremes — a checklist that
+  // ignores age treats a 90-year-old and a 25-year-old identically.
+  function computeAgeFlags(){
+    const notes = [];
+    let level = 'selfcare';
+    const rank = { selfcare: 0, doctor: 1, emergency: 2 };
+    const age = getAgeYears();
+    if(age === null) return { level, notes };
+
+    if(age <= 2 && state.symptoms.has('Fever')){
+      notes.push({ text: "Fever in a very young child generally warrants a same-day check with a doctor, even if it seems mild otherwise.", level: 'doctor' });
+      if(rank.doctor > rank[level]) level = 'doctor';
+    }
+    if(age >= 65 && (state.symptoms.has('Chest pain or pressure') || state.symptoms.has('Shortness of breath'))){
+      notes.push({ text: "In older adults, chest pain or breathlessness can present more subtly and is treated as urgent regardless of how mild it feels.", level: 'emergency' });
+      level = 'emergency';
+    }
+    return { level, notes };
+  }
 
   function getAnswerValues(symptom, questionId){
     const key = symptom + '::' + questionId;
@@ -1216,39 +1589,84 @@
     return set ? [...set] : [];
   }
 
-  function computeOverallUrgency(){
-    // 1. Symptom-level emergency flags
-    for(const sym of state.symptoms){
-      if(EMERGENCY_SYMPTOMS.has(sym)) return 'emergency';
-    }
-    // 2. Answer-level emergency flags
+  // Has the person answered *any* question for this symptom yet?
+  function hasAnyAnswer(symptom){
+    const questions = QUESTION_BANK[symptom];
+    if(!questions) return true; // no bank entry, nothing required
+    return questions.some(q => getAnswerValues(symptom, q.id).length > 0);
+  }
+
+  function computeSymptomLevel(sym){
+    if(EMERGENCY_SYMPTOMS.has(sym)) return 'emergency';
+
+    let level = 'selfcare';
+
     for(const rule of EMERGENCY_ANSWER_RULES){
-      if(!state.symptoms.has(rule.symptom)) continue;
-      const answers = getAnswerValues(rule.symptom, rule.questionId);
+      if(rule.symptom !== sym) continue;
+      const answers = getAnswerValues(sym, rule.questionId);
       if(rule.values.some(v => answers.includes(v))) return 'emergency';
     }
-    // 3. Answer-level "see a doctor soon" flags
     for(const rule of DOCTOR_ANSWER_RULES){
-      if(!state.symptoms.has(rule.symptom)) continue;
-      const answers = getAnswerValues(rule.symptom, rule.questionId);
-      if(rule.values.some(v => answers.includes(v))) return 'doctor';
+      if(rule.symptom !== sym) continue;
+      const answers = getAnswerValues(sym, rule.questionId);
+      if(rule.values.some(v => answers.includes(v))) level = 'doctor';
     }
-    // 4. Default
-    return state.symptoms.size ? 'selfcare' : 'selfcare';
+
+    // Escalate rather than reassure: if this symptom needs an answer to be
+    // read as low-risk and none was given, don't default to self-care.
+    if(REQUIRES_ANSWER_SYMPTOMS.has(sym) && !hasAnyAnswer(sym) && level === 'selfcare'){
+      level = 'doctor';
+    }
+
+    return level;
+  }
+
+  function computeOverallUrgency(){
+    const rank = { selfcare: 0, doctor: 1, emergency: 2 };
+    let worst = 'selfcare';
+
+    for(const sym of state.symptoms){
+      const lvl = computeSymptomLevel(sym);
+      if(rank[lvl] > rank[worst]) worst = lvl;
+    }
+
+    const combo = computeComboFlags();
+    if(rank[combo.level] > rank[worst]) worst = combo.level;
+
+    const ageFlags = computeAgeFlags();
+    if(rank[ageFlags.level] > rank[worst]) worst = ageFlags.level;
+
+    // A clearly worsening trend nudges self-care up to a doctor check —
+    // it doesn't jump straight to emergency on its own.
+    const trend = getAnswerValues('GLOBAL', 'trend');
+    if(trend.includes('Getting worse') && worst === 'selfcare'){
+      worst = 'doctor';
+    }
+
+    return worst;
+  }
+
+  function getExtraNotes(){
+    const notes = [...computeComboFlags().notes, ...computeAgeFlags().notes];
+    const trend = getAnswerValues('GLOBAL', 'trend');
+    if(trend.includes('Getting worse')){
+      notes.push({ text: "You noted this is getting worse rather than settling — that alone is worth a sooner check, even if each symptom looks mild on its own.", level: 'doctor' });
+    }
+    return notes;
   }
 
   function renderMedCaution(){
     const el = document.getElementById('medCautionBanner');
     const flags = [];
     if(state.pregnant === 'Yes') flags.push('pregnancy or breastfeeding');
-    if(state.conditions.size && !state.conditions.has('None of these')) flags.push('an existing condition (' + [...state.conditions].join(', ') + ')');
-    if(state.meds) flags.push('current medication (' + state.meds + ')');
+    if(state.conditions.size && !state.conditions.has('None of these')) flags.push('an existing condition (' + escapeHtml([...state.conditions].join(', ')) + ')');
+    if(state.meds) flags.push('current medication (' + escapeHtml(state.meds) + ')');
 
     if(flags.length === 0){ el.innerHTML = ''; return; }
 
     el.innerHTML = `
       <div class="med-caution-banner">
-        <div class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 8v5" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.6"/></svg></div>
+        <div class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8v5" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.6"/></svg></div>
         <p><strong>Extra caution:</strong> you mentioned ${flags.join(' and ')}. Please check with a pharmacist or doctor before taking any new over-the-counter medicine, even the general options listed below — some aren't suitable in these situations.</p>
       </div>`;
   }
@@ -1285,12 +1703,22 @@
     const b = banners[level];
     urgencyEl.innerHTML = `
       <div class="urgency-banner ${b.cls}">
-        <div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 8v5" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.6"/></svg></div>
+        <div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8v5" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.6"/></svg></div>
         <div>
           <h4>${b.title}</h4>
           <p>${b.text}</p>
         </div>
-      </div>`;
+      </div>
+      ${level === 'emergency' ? `
+      <div class="emergency-callout">
+        <p>If symptoms are severe or getting worse right now, don't wait — call your local emergency number or go to the nearest emergency department immediately.</p>
+      </div>` : ''}
+      ${getExtraNotes().map(n => `
+      <div class="combo-note${n.level === 'doctor' ? ' doctor-note' : ''}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span>${escapeHtml(n.text)}</span>
+      </div>`).join('')}
+    `;
 
     [...state.symptoms].forEach(sym => {
       const kb = KNOWLEDGE_BASE[sym];
@@ -1299,7 +1727,7 @@
 
       if(!kb){
         block.innerHTML = `
-          <h4>${sym}</h4>
+          <h4>${escapeHtml(sym)}</h4>
           <span class="suggestion-tag selfcare">General guidance</span>
           <p class="note">We don't have detailed guidance for this specific symptom yet. As a general rule: rest, stay hydrated, and see a doctor if it's severe, persistent, or worsening — and check with a pharmacist before taking anything for it.</p>
         `;
@@ -1307,45 +1735,29 @@
         return;
       }
 
-      // Determine this symptom's own tag (does it individually trigger doctor/emergency?)
-      let symLevel = 'selfcare';
-      if(EMERGENCY_SYMPTOMS.has(sym)) symLevel = 'emergency';
-      EMERGENCY_ANSWER_RULES.forEach(rule => {
-        if(rule.symptom === sym){
-          const answers = getAnswerValues(sym, rule.questionId);
-          if(rule.values.some(v => answers.includes(v))) symLevel = 'emergency';
-        }
-      });
-      if(symLevel !== 'emergency'){
-        DOCTOR_ANSWER_RULES.forEach(rule => {
-          if(rule.symptom === sym){
-            const answers = getAnswerValues(sym, rule.questionId);
-            if(rule.values.some(v => answers.includes(v))) symLevel = 'doctor';
-          }
-        });
-      }
+      const symLevel = computeSymptomLevel(sym);
       const tagLabel = symLevel === 'emergency' ? 'Seek urgent care' : symLevel === 'doctor' ? 'See a doctor soon' : 'Self-care reasonable';
 
-      const medsHtml = (symLevel === 'emergency')
-        ? `<p class="note">Please hold off on self-medicating for this and get it checked first — see the urgency note above.</p>`
+      const medsHtml = (symLevel === 'emergency' || kb.medicines.length === 0)
+        ? `<p class="note">${symLevel === 'emergency' ? "Please hold off on self-medicating for this and get it checked first — see the urgency note above." : "There isn't a general OTC option we'd suggest for this one without a proper assessment first."}</p>`
         : `
           <div class="suggestion-sub">Medicines that may help</div>
           <ul class="med-list">
-            ${kb.medicines.map(m => `<li><span class="med-name">${m.name}</span><span class="med-caveat">${m.caveat}</span></li>`).join('')}
+            ${kb.medicines.map(m => `<li><span class="med-name">${escapeHtml(m.name)}</span><span class="med-caveat">${escapeHtml(m.caveat)}</span></li>`).join('')}
           </ul>
-          ${kb.notIf ? `<div class="med-not-if">⚠ ${kb.notIf}</div>` : ''}
+          ${kb.notIf ? `<div class="med-not-if">⚠ ${escapeHtml(kb.notIf)}</div>` : ''}
         `;
 
       block.innerHTML = `
-        <h4>${sym}</h4>
+        <h4>${escapeHtml(sym)}</h4>
         <span class="suggestion-tag ${symLevel}">${tagLabel}</span>
         <div class="suggestion-sub">Commonly associated with</div>
-        <ul>${kb.causes.map(c => `<li>${c}</li>`).join('')}</ul>
+        <ul>${kb.causes.map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ul>
         <div class="suggestion-sub">Self-care that may help</div>
-        <ul>${kb.selfCare.map(c => `<li>${c}</li>`).join('')}</ul>
+        <ul>${kb.selfCare.map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ul>
         ${medsHtml}
         <div class="suggestion-sub">See a doctor if</div>
-        <ul>${kb.seeDoctorIf.map(c => `<li>${c}</li>`).join('')}</ul>
+        <ul>${kb.seeDoctorIf.map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ul>
       `;
       resultsEl.appendChild(block);
     });
@@ -1356,18 +1768,91 @@
     state.conditions.clear(); state.meds = "";
     state.symptoms.clear();
     state.followupAnswers = {};
+    state.maxStepReached = 0;
     document.getElementById('fName').value = '';
     document.getElementById('fAge').value = '';
     document.getElementById('fMeds').value = '';
-    document.querySelectorAll('#genderSelect button').forEach(b => b.classList.remove('selected'));
-    document.querySelectorAll('#pregSelect button').forEach(b => b.classList.remove('selected'));
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+    setFieldError('fName','fNameError', false);
+    setFieldError('fAge','fAgeError', false);
+    document.querySelectorAll('#genderSelect button, #pregSelect button').forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); });
+    document.querySelectorAll('.chip').forEach(c => { c.classList.remove('selected'); c.setAttribute('aria-pressed','false'); });
+    const searchInput = document.getElementById('symptomSearch');
+    if(searchInput){ searchInput.value = ''; filterSymptomChips(''); }
     updateSelectionCount();
+    clearSession();
     goTo(0);
   }
 
+  /* =========================================================================
+     RESTORE SESSION (if the tab was refreshed mid-flow)
+  ========================================================================= */
+  function restoreFromSession(){
+    const saved = loadSession();
+    if(!saved) { goTo(0); return; }
+
+    state.name = saved.name || "";
+    state.age = saved.age || "";
+    state.gender = saved.gender || "";
+    state.pregnant = saved.pregnant || "";
+    state.conditions = new Set(saved.conditions || []);
+    state.meds = saved.meds || "";
+    state.symptoms = new Set(saved.symptoms || []);
+    state.maxStepReached = saved.maxStepReached || 0;
+    state.followupAnswers = {};
+    Object.entries(saved.followupAnswers || {}).forEach(([k,v]) => { state.followupAnswers[k] = new Set(v); });
+
+    document.getElementById('fName').value = state.name;
+    document.getElementById('fAge').value = state.age;
+    document.getElementById('fMeds').value = state.meds;
+
+    document.querySelectorAll('#genderSelect button').forEach(b => {
+      const on = b.dataset.val === state.gender;
+      b.classList.toggle('selected', on); b.setAttribute('aria-pressed', on ? 'true':'false');
+    });
+    document.querySelectorAll('#pregSelect button').forEach(b => {
+      const on = b.dataset.val === state.pregnant;
+      b.classList.toggle('selected', on); b.setAttribute('aria-pressed', on ? 'true':'false');
+    });
+    document.querySelectorAll('#conditionChips .chip').forEach(c => {
+      const on = state.conditions.has(c.dataset.condition);
+      c.classList.toggle('selected', on); c.setAttribute('aria-pressed', on ? 'true':'false');
+    });
+    // Re-create any custom conditions that aren't in the base list
+    state.conditions.forEach(c => {
+      if(!CONDITION_OPTIONS.includes(c) && !document.querySelector(`#conditionChips [data-condition="${CSS.escape(c)}"]`)){
+        const chip = document.createElement('button');
+        chip.type = 'button'; chip.className = 'chip selected';
+        chip.setAttribute('data-condition', c); chip.setAttribute('aria-pressed','true');
+        chip.innerHTML = `<span class="dot"></span>${escapeHtml(c)}`;
+        chip.onclick = () => toggleCondition(chip, c);
+        condWrap.insertBefore(chip, condWrap.lastElementChild.nextSibling);
+      }
+    });
+    document.querySelectorAll('#symptomCategories .chip').forEach(c => {
+      const on = state.symptoms.has(c.dataset.symptom);
+      c.classList.toggle('selected', on); c.setAttribute('aria-pressed', on ? 'true':'false');
+    });
+    // Re-create any custom symptoms that aren't in the base categories
+    const knownSymptoms = new Set(SYMPTOM_CATEGORIES.flatMap(c => c.items));
+    state.symptoms.forEach(s => {
+      if(!knownSymptoms.has(s) && !document.querySelector(`#symptomCategories [data-symptom="${CSS.escape(s)}"]`)){
+        const otherCat = document.querySelectorAll('.category')[document.querySelectorAll('.category').length - 1];
+        const chipsDiv = otherCat.querySelector('.chips');
+        const chip = document.createElement('button');
+        chip.type = 'button'; chip.className = 'chip selected';
+        chip.setAttribute('data-symptom', s); chip.setAttribute('aria-pressed','true');
+        chip.innerHTML = `<span class="dot"></span>${escapeHtml(s)}`;
+        chip.onclick = () => toggleSymptom(chip, s);
+        chipsDiv.appendChild(chip);
+      }
+    });
+
+    updateSelectionCount();
+    goTo(saved.currentStep || 0);
+  }
+
   // init
-  goTo(0);
+  restoreFromSession();
 </script>
 
 </body>
