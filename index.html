@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MedExpert — Rule-Based Health Assessment</title>
+<meta name="description" content="MedExpert is an educational, rule-based medical decision-support system that helps you understand your symptoms and next steps." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- =========================================================
+     Header
+     ========================================================= -->
+<header class="site-header">
+  <div class="container">
+    <a href="#top" class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="40" height="40" rx="11" fill="#146F65"/>
+        <path d="M20 10V30" stroke="#F6F8F7" stroke-width="3" stroke-linecap="round"/>
+        <path d="M10 20H30" stroke="#F6F8F7" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="20" cy="20" r="16" stroke="#F6F8F7" stroke-width="1.5" stroke-dasharray="2 4" opacity="0.6"/>
+      </svg>
+      MedExpert
+    </a>
+
+    <nav class="main-nav" aria-label="Primary">
+      <a href="#top">Home</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#about">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <a href="#" class="btn btn-primary" data-start-assessment>
+        Start Health Assessment <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+      <svg class="icon-open" viewBox="0 0 24 24" fill="none" stroke="#10262A" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="#10262A" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="mobile-nav">
+    <div class="container">
+      <a href="#top">Home</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#about">About</a>
+      <a href="#" class="btn btn-primary" data-start-assessment>
+        Start Health Assessment <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- =========================================================
+       Hero
+       ========================================================= -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-copy">
+        <span class="eyebrow">Rule-Based Decision Support</span>
+        <h1>Understand Your Symptoms. <span class="highlight">Make Informed Decisions.</span></h1>
+        <p class="hero-sub">
+          MedExpert is an educational, rule-based medical assessment system. Answer a
+          short set of questions about your symptoms and see how a structured
+          knowledge base of clinical rules reasons through them — step by step,
+          with a clear explanation for every conclusion.
+        </p>
+        <div class="hero-ctas">
+          <a href="#" class="btn btn-primary" data-start-assessment>
+            Start Health Assessment <span class="arrow" aria-hidden="true">→</span>
+          </a>
+          <a href="#how-it-works" class="btn btn-ghost">See how it works</a>
+        </div>
+        <div class="hero-meta">
+          <div class="hero-meta-item">
+            <span class="num">Rule-based</span>
+            <span class="label">not a black box</span>
+          </div>
+          <div class="hero-meta-item">
+            <span class="num">Explainable</span>
+            <span class="label">every step shown</span>
+          </div>
+          <div class="hero-meta-item">
+            <span class="num">Educational</span>
+            <span class="label">academic project</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signature element: a live-looking inference diagram -->
+      <div class="hero-visual" aria-hidden="true">
+        <div class="hero-visual-header">
+          <span class="hero-visual-title">Inference Preview</span>
+          <span class="hero-visual-status"><span class="status-dot"></span>Engine idle</span>
+        </div>
+
+        <svg class="inference-svg" viewBox="0 0 420 300" xmlns="http://www.w3.org/2000/svg">
+          <!-- edges -->
+          <path class="edge-active" d="M80,50 L180,50" />
+          <path class="edge-active" d="M180,50 L280,30" />
+          <path class="edge" d="M180,50 L280,70" />
+          <path class="edge-active" d="M280,30 L360,50" />
+          <path class="edge" d="M280,70 L360,90" />
+          <path class="edge" d="M180,50 L180,140" />
+          <path class="edge-active" d="M180,140 L280,140" />
+          <path class="edge" d="M280,140 L360,120" />
+          <path class="edge-active" d="M280,140 L360,160" />
+          <path class="edge" d="M180,140 L180,220" />
+          <path class="edge" d="M180,220 L280,220" />
+          <path class="edge" d="M280,220 L360,220" />
+
+          <!-- Root: symptom input -->
+          <rect class="node-rect is-root" x="20" y="34" width="60" height="32" rx="8"/>
+          <text class="node-tag" x="26" y="30">INPUT</text>
+          <text class="node-label is-root" x="30" y="54">Fever</text>
+
+          <!-- Rule node -->
+          <rect class="node-rect" x="150" y="34" width="60" height="32" rx="8"/>
+          <text class="node-tag" x="156" y="30">RULE R-01</text>
+          <text class="node-label" x="157" y="54">Duration</text>
+
+          <rect class="node-rect" x="150" y="124" width="60" height="32" rx="8"/>
+          <text class="node-tag" x="156" y="120">RULE R-04</text>
+          <text class="node-label" x="152" y="144">Severity</text>
+
+          <rect class="node-rect" x="150" y="204" width="60" height="32" rx="8"/>
+          <text class="node-tag" x="156" y="200">RULE R-07</text>
+          <text class="node-label" x="152" y="224">Symptom+</text>
+
+          <!-- Branch nodes -->
+          <rect class="node-rect" x="250" y="14" width="60" height="32" rx="8"/>
+          <text class="node-label" x="264" y="34">&gt; 3 days</text>
+
+          <rect class="node-rect" x="250" y="54" width="60" height="32" rx="8"/>
+          <text class="node-label" x="264" y="74">&lt; 3 days</text>
+
+          <rect class="node-rect" x="250" y="124" width="60" height="32" rx="8"/>
+          <text class="node-label" x="266" y="144">Mild</text>
+
+          <rect class="node-rect" x="250" y="204" width="60" height="32" rx="8"/>
+          <text class="node-label" x="260" y="224">Isolated</text>
+
+          <!-- Output nodes -->
+          <rect class="node-rect is-output" x="340" y="34" width="60" height="32" rx="8"/>
+          <text class="node-tag" x="348" y="30">OUTPUT</text>
+          <text class="node-label is-output" x="356" y="54">Assess</text>
+
+          <rect class="node-rect is-output" x="340" y="104" width="60" height="32" rx="8"/>
+          <text class="node-tag" x="348" y="100">OUTPUT</text>
+          <text class="node-label is-output" x="352" y="124">Monitor</text>
+
+          <rect class="node-rect is-output" x="340" y="144" width="60" height="32" rx="8"/>
+          <text class="node-tag" x="348" y="140">OUTPUT</text>
+          <text class="node-label is-output" x="356" y="164">Assess</text>
+
+          <rect class="node-rect" x="340" y="204" width="60" height="32" rx="8"/>
+          <text class="node-label" x="352" y="224">Log only</text>
+        </svg>
+
+        <div class="hero-visual-footer">
+          <span>12 sample rules loaded</span>
+          <span>Illustrative only</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       Feature cards
+       ========================================================= -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="eyebrow">What MedExpert Does</span>
+        <h2>Four modules, one transparent pipeline</h2>
+        <p>Each stage of the assessment is a distinct, inspectable module — designed so the reasoning behind a result is never a mystery.</p>
+      </div>
+
+      <div class="card-grid">
+        <article class="feature-card reveal">
+          <span class="module-tag">Module 01</span>
+          <div class="icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>
+          </div>
+          <h3>Symptom Assessment</h3>
+          <p>Answer simple questions about your symptoms — no medical jargon required.</p>
+        </article>
+
+        <article class="feature-card reveal">
+          <span class="module-tag">Module 02</span>
+          <div class="icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8.2 7.3L11 16M15.8 7.3L13 16M8.5 6h7"/></svg>
+          </div>
+          <h3>Rule-Based Analysis</h3>
+          <p>The system evaluates your answers using a structured medical knowledge base.</p>
+        </article>
+
+        <article class="feature-card reveal">
+          <span class="module-tag">Module 03</span>
+          <div class="icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V6a2 2 0 012-2h9l5 5v10.5a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 014 19.5z"/><path d="M9 12h6M9 16h6M9 8h2"/></svg>
+          </div>
+          <h3>Clear Explanation</h3>
+          <p>Understand exactly which symptoms and rules contributed to the assessment.</p>
+        </article>
+
+        <article class="feature-card reveal">
+          <span class="module-tag">Module 04</span>
+          <div class="icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6a5.5 5.5 0 019.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>
+          </div>
+          <h3>Health Guidance</h3>
+          <p>Receive general information and suggested next steps to discuss with a professional.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       How it works
+       ========================================================= -->
+  <section class="section section-alt" id="how-it-works">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="eyebrow">The Pipeline</span>
+        <h2>How an assessment actually runs</h2>
+        <p>Three sequential stages — input, inference, output — mirroring how the rule engine itself will process your answers.</p>
+      </div>
+
+      <div class="pipeline">
+        <div class="pipeline-step reveal">
+          <div class="stage-num">01</div>
+          <h3>Tell Us</h3>
+          <p>Enter basic information — age, sex, and the symptoms you're experiencing.</p>
+          <span class="stage-code">STAGE::INPUT</span>
+        </div>
+        <div class="pipeline-step reveal">
+          <div class="stage-num">02</div>
+          <h3>Answer Questions</h3>
+          <p>The system asks relevant follow-up questions about duration and severity.</p>
+          <span class="stage-code">STAGE::INFERENCE</span>
+        </div>
+        <div class="pipeline-step reveal">
+          <div class="stage-num">03</div>
+          <h3>Get an Assessment</h3>
+          <p>Receive a plain-language explanation and suggested next steps.</p>
+          <span class="stage-code">STAGE::OUTPUT</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       Disclaimer + Final CTA
+       ========================================================= -->
+  <section class="section" id="about">
+    <div class="container">
+      <div class="disclaimer-panel reveal" style="margin-bottom: 56px;">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L14.7 3.86a2 2 0 00-3.4 0z"/></svg>
+        </div>
+        <div>
+          <h3>Medical Disclaimer</h3>
+          <p>This system is for educational and informational purposes only. It does not provide a medical diagnosis and should not replace advice from a qualified healthcare professional. If you are experiencing a medical emergency, seek appropriate emergency medical care.</p>
+        </div>
+      </div>
+
+      <div class="final-cta reveal">
+        <div>
+          <h2>Ready to see it reason through your symptoms?</h2>
+          <p>Start the assessment to walk through the questionnaire the way the finished system will use it.</p>
+        </div>
+        <a href="#" class="btn btn-primary" data-start-assessment>
+          Start Health Assessment <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <svg class="brand-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="40" height="40" rx="11" fill="#F6F8F7" fill-opacity="0.12"/>
+            <path d="M20 10V30" stroke="#F6F8F7" stroke-width="3" stroke-linecap="round"/>
+            <path d="M10 20H30" stroke="#F6F8F7" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          MedExpert
+        </div>
+        <p class="footer-desc">An educational, rule-based medical decision-support system built as an academic project.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Site</h4>
+        <ul>
+          <li><a href="#top">Home</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#about">Privacy</a></li>
+          <li><a href="#about">Disclaimer</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Project</h4>
+        <ul>
+          <li><a href="#">BTech / CSE</a></li>
+          <li><a href="#">Academic Use Only</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© <span data-year>2026</span> MedExpert</span>
+      <span class="footer-bottom-status"><span class="status-dot"></span>Educational build — not for clinical use</span>
+    </div>
+  </div>
+</footer>
+
+<!-- =========================================================
+     Placeholder modal for "Start Health Assessment"
+     ========================================================= -->
+<div class="modal-overlay">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+    </div>
+    <h3 id="modal-title">Assessment coming soon</h3>
+    <p>The symptom questionnaire and rule-based engine are still in development. This front page is ready to connect to them once they're built.</p>
+    <button class="btn btn-ghost" data-close-modal>Close</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
