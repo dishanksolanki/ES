@@ -441,8 +441,12 @@
           </div>
         </div>
         <div class="field">
-          <label>Existing conditions <span class="hint">(optional — e.g. diabetes, asthma, BP)</span></label>
-          <textarea id="fConditions" placeholder="Leave blank if none"></textarea>
+          <label>Existing conditions <span class="hint">(optional — select any that apply)</span></label>
+          <div class="chips" id="conditionChips" style="margin-top:2px;"></div>
+          <div class="custom-add" style="margin-top:10px;">
+            <input type="text" id="customConditionInput" placeholder="Don't see it? Type your own">
+            <button type="button" onclick="addCustomCondition()">Add</button>
+          </div>
         </div>
         <div class="field">
           <label>Currently taking any medication? <span class="hint">(optional)</span></label>
@@ -547,9 +551,15 @@
     { name: "Other", items: ["Anxiety", "Trouble sleeping", "Weight loss", "Weight gain"] }
   ];
 
+  const CONDITION_OPTIONS = [
+    "Diabetes", "High blood pressure", "Asthma", "Thyroid disorder",
+    "Heart disease", "Kidney disease", "Liver disease", "Obesity",
+    "Anemia", "Arthritis", "Epilepsy", "Pregnancy", "None of these"
+  ];
+
   const state = {
     name: "", age: "", gender: "",
-    conditions: "", meds: "",
+    conditions: new Set(), meds: "",
     symptoms: new Set(),
     currentStep: 0
   };
@@ -564,6 +574,66 @@
     ).join('');
     block.innerHTML = `<h3>${cat.name}</h3><div class="chips">${chipsHtml}</div>`;
     catWrap.appendChild(block);
+  });
+
+  // ---- Render existing-condition chips ----
+  const condWrap = document.getElementById('conditionChips');
+  CONDITION_OPTIONS.forEach(c => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.setAttribute('data-condition', c);
+    chip.innerHTML = `<span class="dot"></span>${c}`;
+    chip.onclick = () => toggleCondition(chip, c);
+    condWrap.appendChild(chip);
+  });
+
+  function toggleCondition(btn, name){
+    if(name === 'None of these'){
+      state.conditions.clear();
+      document.querySelectorAll('#conditionChips .chip').forEach(c => c.classList.remove('selected'));
+      state.conditions.add(name);
+      btn.classList.add('selected');
+      return;
+    }
+    // picking any real condition clears "None of these"
+    const noneChip = [...document.querySelectorAll('#conditionChips .chip')].find(c => c.dataset.condition === 'None of these');
+    if(state.conditions.has('None of these')){
+      state.conditions.delete('None of these');
+      if(noneChip) noneChip.classList.remove('selected');
+    }
+    if(state.conditions.has(name)){
+      state.conditions.delete(name);
+      btn.classList.remove('selected');
+    } else {
+      state.conditions.add(name);
+      btn.classList.add('selected');
+    }
+  }
+
+  function addCustomCondition(){
+    const input = document.getElementById('customConditionInput');
+    const val = input.value.trim();
+    if(!val) return;
+    if(state.conditions.has('None of these')){
+      state.conditions.delete('None of these');
+      const noneChip = [...document.querySelectorAll('#conditionChips .chip')].find(c => c.dataset.condition === 'None of these');
+      if(noneChip) noneChip.classList.remove('selected');
+    }
+    if(!state.conditions.has(val)){
+      state.conditions.add(val);
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip selected';
+      chip.setAttribute('data-condition', val);
+      chip.innerHTML = `<span class="dot"></span>${val}`;
+      chip.onclick = () => toggleCondition(chip, val);
+      condWrap.insertBefore(chip, condWrap.lastElementChild.nextSibling);
+    }
+    input.value = '';
+  }
+  document.getElementById('customConditionInput').addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); addCustomCondition(); }
   });
 
   function toggleSymptom(btn, name){
@@ -647,7 +717,6 @@
     if(step === 2){
       state.name = document.getElementById('fName').value.trim();
       state.age = document.getElementById('fAge').value.trim();
-      state.conditions = document.getElementById('fConditions').value.trim();
       state.meds = document.getElementById('fMeds').value.trim();
       if(!state.name || !state.age){
         alert('Please enter your name and age to continue.');
@@ -668,7 +737,7 @@
       <div class="summary-row"><span class="k">Name</span><span class="v">${state.name || '—'}</span></div>
       <div class="summary-row"><span class="k">Age</span><span class="v">${state.age || '—'}</span></div>
       <div class="summary-row"><span class="k">Gender</span><span class="v">${state.gender || '—'}</span></div>
-      <div class="summary-row"><span class="k">Existing conditions</span><span class="v">${state.conditions || 'None reported'}</span></div>
+      <div class="summary-row"><span class="k">Existing conditions</span><span class="v">${state.conditions.size ? `<span class="tag-list">${[...state.conditions].map(c=>`<span>${c}</span>`).join('')}</span>` : 'None reported'}</span></div>
       <div class="summary-row"><span class="k">Medication</span><span class="v">${state.meds || 'None reported'}</span></div>
       <div class="summary-row"><span class="k">Symptoms</span><span class="v"><span class="tag-list">${[...state.symptoms].map(s=>`<span>${s}</span>`).join('')}</span></span></div>
     `;
@@ -676,11 +745,10 @@
 
   function restart(){
     state.name = ""; state.age = ""; state.gender = "";
-    state.conditions = ""; state.meds = "";
+    state.conditions.clear(); state.meds = "";
     state.symptoms.clear();
     document.getElementById('fName').value = '';
     document.getElementById('fAge').value = '';
-    document.getElementById('fConditions').value = '';
     document.getElementById('fMeds').value = '';
     document.querySelectorAll('#genderSelect button').forEach(b => b.classList.remove('selected'));
     document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
