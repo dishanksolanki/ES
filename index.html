@@ -1,360 +1,696 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>document.documentElement.classList.add('js');</script>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MedExpert — Rule-Based Health Assessment</title>
-<meta name="description" content="MedExpert is an educational, rule-based medical decision-support system that helps you understand your symptoms and next steps." />
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediCheck — Tell us what's wrong</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #f6f8f7;
+    --panel: #ffffff;
+    --ink: #17231f;
+    --ink-soft: #55655e;
+    --teal: #163f3a;
+    --teal-2: #2a615a;
+    --sage: #8fada2;
+    --sage-tint: #e7efec;
+    --pulse: #e0483a;
+    --pulse-tint: #fdece9;
+    --line: #dde5e1;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(23,35,31,.04), 0 8px 24px rgba(23,35,31,.06);
+  }
 
-<link rel="stylesheet" href="style.css" />
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,h2,h3{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .eyebrow{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--teal-2);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  /* ---------- App shell ---------- */
+  .app{
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+  header.top{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 6px 2px 26px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand-mark{
+    width:34px; height:34px;
+    border-radius: 9px;
+    background: var(--teal);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .brand-mark svg{ width:18px; height:18px; }
+  .brand-name{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; }
+  .brand-tag{ font-size:12px; color:var(--ink-soft); }
+
+  /* ---------- Pulse progress (signature element) ---------- */
+  .pulse-progress{
+    position: relative;
+    height: 46px;
+    margin: 4px 0 30px;
+  }
+  .pulse-progress svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .pulse-line{
+    fill:none;
+    stroke: var(--line);
+    stroke-width:2;
+  }
+  .pulse-line-fill{
+    fill:none;
+    stroke: var(--pulse);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    transition: stroke-dashoffset .7s cubic-bezier(.4,0,.2,1);
+  }
+  .step-dot{
+    transform-origin: center;
+  }
+  .step-dot circle{
+    fill: var(--panel);
+    stroke: var(--line);
+    stroke-width: 2;
+    transition: all .3s ease;
+  }
+  .step-dot.done circle{ stroke: var(--pulse); fill: var(--pulse); }
+  .step-dot.active circle{
+    stroke: var(--pulse);
+    fill: var(--panel);
+    animation: beat 1.4s ease-in-out infinite;
+  }
+  .step-dot text{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10px;
+    fill: var(--ink-soft);
+    text-anchor: middle;
+  }
+  .step-dot.active text, .step-dot.done text{ fill: var(--teal); font-weight:500; }
+  @keyframes beat{
+    0%,100%{ transform: scale(1); }
+    35%{ transform: scale(1.35); }
+    55%{ transform: scale(0.92); }
+  }
+
+  /* ---------- Panels ---------- */
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 34px 32px;
+    animation: rise .45s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes rise{
+    from{ opacity:0; transform: translateY(10px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  .panel h2{ font-size: 24px; }
+  .panel .sub{ color: var(--ink-soft); font-size: 14.5px; margin-top:6px; line-height:1.5; }
+
+  /* ---------- Welcome screen ---------- */
+  .hero{ text-align:left; padding: 6px 2px 8px; }
+  .hero h1{ font-size: 34px; line-height:1.15; max-width: 480px; }
+  .hero .sub{ color: var(--ink-soft); font-size:15.5px; max-width:460px; margin-top:14px; line-height:1.6; }
+  .hero-vitals{
+    margin: 26px 0 30px;
+    height: 64px;
+  }
+  .disclaimer{
+    display:flex; gap:10px; align-items:flex-start;
+    background: var(--sage-tint);
+    border: 1px solid #d3e2dc;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--teal);
+    margin-top: 24px;
+  }
+  .disclaimer svg{ flex-shrink:0; margin-top:1px; }
+
+  /* ---------- Form elements ---------- */
+  .field{ margin-bottom: 20px; }
+  .field label{
+    display:block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--teal);
+    margin-bottom: 7px;
+  }
+  .field .hint{ font-weight:400; color:var(--ink-soft); font-size:12px; }
+  .field input[type=text], .field input[type=number], .field select, .field textarea{
+    width:100%;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:15px;
+    padding: 11px 13px;
+    border-radius:10px;
+    border: 1.5px solid var(--line);
+    background: #fcfdfc;
+    color: var(--ink);
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .field textarea{ resize: vertical; min-height:64px; }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline: none;
+    border-color: var(--teal-2);
+    box-shadow: 0 0 0 3px rgba(42,97,90,.14);
+  }
+  .row2{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  .pill-select{ display:flex; gap:8px; flex-wrap:wrap; }
+  .pill-select button{
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line);
+    background: #fcfdfc;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size: 13.5px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .pill-select button.selected{
+    background: var(--teal);
+    border-color: var(--teal);
+    color: #fff;
+  }
+
+  /* ---------- Symptom chips ---------- */
+  .category{ margin-bottom: 24px; }
+  .category h3{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ink-soft);
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .chips{ display:flex; flex-wrap:wrap; gap:9px; }
+  .chip{
+    display:flex; align-items:center; gap:7px;
+    padding: 9px 15px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: #fcfdfc;
+    font-size: 14px;
+    color: var(--ink);
+    cursor:pointer;
+    user-select:none;
+    transition: transform .12s ease, border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  .chip:hover{ border-color: var(--sage); }
+  .chip .dot{
+    width:6px; height:6px; border-radius:50%;
+    background: var(--line);
+    transition: background .15s ease;
+    flex-shrink:0;
+  }
+  .chip.selected{
+    background: var(--pulse-tint);
+    border-color: var(--pulse);
+    color: #7a281f;
+    transform: translateY(-1px);
+  }
+  .chip.selected .dot{ background: var(--pulse); }
+
+  .custom-add{
+    display:flex; gap:8px; margin-top:6px;
+  }
+  .custom-add input{
+    flex:1;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    padding: 9px 12px;
+    border-radius:10px;
+    border: 1.5px dashed var(--line);
+    background: transparent;
+  }
+  .custom-add input:focus{ outline:none; border-color: var(--teal-2); border-style: solid; }
+  .custom-add button{
+    padding: 9px 16px;
+    border-radius:10px;
+    border: none;
+    background: var(--sage-tint);
+    color: var(--teal);
+    font-size:13.5px;
+    font-weight:500;
+    cursor:pointer;
+  }
+
+  .selection-count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .selection-count b{ color: var(--pulse); }
+
+  /* ---------- Nav buttons ---------- */
+  .nav{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    margin-top: 30px;
+  }
+  .btn{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size: 14.5px;
+    font-weight: 500;
+    padding: 12px 22px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: transform .12s ease, opacity .15s ease;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{ background: var(--teal); color:#fff; }
+  .btn-primary:hover{ background: var(--teal-2); }
+  .btn-primary:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn-primary:disabled:hover{ background: var(--teal); }
+  .btn-ghost{ background: transparent; color: var(--ink-soft); padding: 12px 8px; }
+  .btn-ghost:hover{ color: var(--ink); }
+
+  .required-note{ font-size:12px; color:var(--ink-soft); margin-top:-8px; margin-bottom:18px; }
+
+  /* ---------- Summary / placeholder screens ---------- */
+  .summary-block{
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-top: 18px;
+  }
+  .summary-row{
+    display:flex; justify-content:space-between;
+    font-size: 13.5px;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .summary-row:last-child{ border-bottom:none; }
+  .summary-row .k{ color: var(--ink-soft); }
+  .summary-row .v{ font-weight:500; text-align:right; max-width:60%; }
+  .tag-list{ display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+  .tag-list span{
+    background: var(--sage-tint);
+    color: var(--teal);
+    font-size:12px;
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+
+  .coming-soon{
+    display:flex; gap:14px; align-items:flex-start;
+    background: var(--sage-tint);
+    border: 1px solid #d3e2dc;
+    border-radius: 12px;
+    padding: 18px;
+    margin-top: 22px;
+  }
+  .coming-soon .icon{
+    width:36px; height:36px; border-radius:9px;
+    background: var(--teal);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .coming-soon h4{ font-family:'Fraunces', serif; font-size:15px; font-weight:600; margin:0 0 4px; color: var(--teal); }
+  .coming-soon p{ font-size: 13.5px; color: var(--ink-soft); margin:0; line-height:1.5; }
+
+  .step-wrap{ display:none; }
+  .step-wrap.visible{ display:block; }
+
+  @media (max-width: 520px){
+    .panel{ padding: 26px 20px; }
+    .row2{ grid-template-columns: 1fr; }
+    .hero h1{ font-size:27px; }
+  }
+</style>
 </head>
 <body>
 
-<!-- =========================================================
-     Header
-     ========================================================= -->
-<header class="site-header">
-  <div class="container">
-    <a href="#top" class="brand">
-      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect width="40" height="40" rx="11" fill="#146F65"/>
-        <path d="M20 10V30" stroke="#F6F8F7" stroke-width="3" stroke-linecap="round"/>
-        <path d="M10 20H30" stroke="#F6F8F7" stroke-width="3" stroke-linecap="round"/>
-        <circle cx="20" cy="20" r="16" stroke="#F6F8F7" stroke-width="1.5" stroke-dasharray="2 4" opacity="0.6"/>
-      </svg>
-      MedExpert
-    </a>
+<div class="app">
 
-    <nav class="main-nav" aria-label="Primary">
-      <a href="#top">Home</a>
-      <a href="#how-it-works">How It Works</a>
-      <a href="#about">About</a>
-    </nav>
-
-    <div class="header-actions">
-      <a href="#" class="btn btn-primary" data-start-assessment>
-        Start Health Assessment <span class="arrow" aria-hidden="true">→</span>
-      </a>
-    </div>
-
-    <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
-      <svg class="icon-open" viewBox="0 0 24 24" fill="none" stroke="#10262A" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-      <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="#10262A" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-    </button>
-  </div>
-
-  <div class="mobile-nav">
-    <div class="container">
-      <a href="#top">Home</a>
-      <a href="#how-it-works">How It Works</a>
-      <a href="#about">About</a>
-      <a href="#" class="btn btn-primary" data-start-assessment>
-        Start Health Assessment <span class="arrow" aria-hidden="true">→</span>
-      </a>
-    </div>
-  </div>
-</header>
-
-<main id="top">
-
-  <!-- =========================================================
-       Hero
-       ========================================================= -->
-  <section class="hero">
-    <div class="container">
-      <div class="hero-copy">
-        <span class="eyebrow">Rule-Based Decision Support</span>
-        <h1>Understand Your Symptoms. <span class="highlight">Make Informed Decisions.</span></h1>
-        <p class="hero-sub">
-          MedExpert is an educational, rule-based medical assessment system. Answer a
-          short set of questions about your symptoms and see how a structured
-          knowledge base of clinical rules reasons through them — step by step,
-          with a clear explanation for every conclusion.
-        </p>
-        <div class="hero-ctas">
-          <a href="#" class="btn btn-primary" data-start-assessment>
-            Start Health Assessment <span class="arrow" aria-hidden="true">→</span>
-          </a>
-          <a href="#how-it-works" class="btn btn-ghost">See how it works</a>
-        </div>
-        <div class="hero-meta">
-          <div class="hero-meta-item">
-            <span class="num">Rule-based</span>
-            <span class="label">not a black box</span>
-          </div>
-          <div class="hero-meta-item">
-            <span class="num">Explainable</span>
-            <span class="label">every step shown</span>
-          </div>
-          <div class="hero-meta-item">
-            <span class="num">Educational</span>
-            <span class="label">academic project</span>
-          </div>
-        </div>
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M3 12h4l2 6 4-14 2 8h6" stroke="#f6f8f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
-
-      <!-- Signature element: a live-looking inference diagram -->
-      <div class="hero-visual" aria-hidden="true">
-        <div class="hero-visual-header">
-          <span class="hero-visual-title">Inference Preview</span>
-          <span class="hero-visual-status"><span class="status-dot"></span>Engine idle</span>
-        </div>
-
-        <svg class="inference-svg" viewBox="0 0 420 300" xmlns="http://www.w3.org/2000/svg">
-          <!-- edges -->
-          <path class="edge-active" d="M80,50 L180,50" />
-          <path class="edge-active" d="M180,50 L280,30" />
-          <path class="edge" d="M180,50 L280,70" />
-          <path class="edge-active" d="M280,30 L360,50" />
-          <path class="edge" d="M280,70 L360,90" />
-          <path class="edge" d="M180,50 L180,140" />
-          <path class="edge-active" d="M180,140 L280,140" />
-          <path class="edge" d="M280,140 L360,120" />
-          <path class="edge-active" d="M280,140 L360,160" />
-          <path class="edge" d="M180,140 L180,220" />
-          <path class="edge" d="M180,220 L280,220" />
-          <path class="edge" d="M280,220 L360,220" />
-
-          <!-- Root: symptom input -->
-          <rect class="node-rect is-root" x="20" y="34" width="60" height="32" rx="8"/>
-          <text class="node-tag" x="26" y="30">INPUT</text>
-          <text class="node-label is-root" x="30" y="54">Fever</text>
-
-          <!-- Rule node -->
-          <rect class="node-rect" x="150" y="34" width="60" height="32" rx="8"/>
-          <text class="node-tag" x="156" y="30">RULE R-01</text>
-          <text class="node-label" x="157" y="54">Duration</text>
-
-          <rect class="node-rect" x="150" y="124" width="60" height="32" rx="8"/>
-          <text class="node-tag" x="156" y="120">RULE R-04</text>
-          <text class="node-label" x="152" y="144">Severity</text>
-
-          <rect class="node-rect" x="150" y="204" width="60" height="32" rx="8"/>
-          <text class="node-tag" x="156" y="200">RULE R-07</text>
-          <text class="node-label" x="152" y="224">Symptom+</text>
-
-          <!-- Branch nodes -->
-          <rect class="node-rect" x="250" y="14" width="60" height="32" rx="8"/>
-          <text class="node-label" x="264" y="34">&gt; 3 days</text>
-
-          <rect class="node-rect" x="250" y="54" width="60" height="32" rx="8"/>
-          <text class="node-label" x="264" y="74">&lt; 3 days</text>
-
-          <rect class="node-rect" x="250" y="124" width="60" height="32" rx="8"/>
-          <text class="node-label" x="266" y="144">Mild</text>
-
-          <rect class="node-rect" x="250" y="204" width="60" height="32" rx="8"/>
-          <text class="node-label" x="260" y="224">Isolated</text>
-
-          <!-- Output nodes -->
-          <rect class="node-rect is-output" x="340" y="34" width="60" height="32" rx="8"/>
-          <text class="node-tag" x="348" y="30">OUTPUT</text>
-          <text class="node-label is-output" x="356" y="54">Assess</text>
-
-          <rect class="node-rect is-output" x="340" y="104" width="60" height="32" rx="8"/>
-          <text class="node-tag" x="348" y="100">OUTPUT</text>
-          <text class="node-label is-output" x="352" y="124">Monitor</text>
-
-          <rect class="node-rect is-output" x="340" y="144" width="60" height="32" rx="8"/>
-          <text class="node-tag" x="348" y="140">OUTPUT</text>
-          <text class="node-label is-output" x="356" y="164">Assess</text>
-
-          <rect class="node-rect" x="340" y="204" width="60" height="32" rx="8"/>
-          <text class="node-label" x="352" y="224">Log only</text>
-        </svg>
-
-        <div class="hero-visual-footer">
-          <span>12 sample rules loaded</span>
-          <span>Illustrative only</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- =========================================================
-       Feature cards
-       ========================================================= -->
-  <section class="section" id="features">
-    <div class="container">
-      <div class="section-header reveal">
-        <span class="eyebrow">What MedExpert Does</span>
-        <h2>Four modules, one transparent pipeline</h2>
-        <p>Each stage of the assessment is a distinct, inspectable module — designed so the reasoning behind a result is never a mystery.</p>
-      </div>
-
-      <div class="card-grid">
-        <article class="feature-card reveal">
-          <span class="module-tag">Module 01</span>
-          <div class="icon-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>
-          </div>
-          <h3>Symptom Assessment</h3>
-          <p>Answer simple questions about your symptoms — no medical jargon required.</p>
-        </article>
-
-        <article class="feature-card reveal">
-          <span class="module-tag">Module 02</span>
-          <div class="icon-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8.2 7.3L11 16M15.8 7.3L13 16M8.5 6h7"/></svg>
-          </div>
-          <h3>Rule-Based Analysis</h3>
-          <p>The system evaluates your answers using a structured medical knowledge base.</p>
-        </article>
-
-        <article class="feature-card reveal">
-          <span class="module-tag">Module 03</span>
-          <div class="icon-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V6a2 2 0 012-2h9l5 5v10.5a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 014 19.5z"/><path d="M9 12h6M9 16h6M9 8h2"/></svg>
-          </div>
-          <h3>Clear Explanation</h3>
-          <p>Understand exactly which symptoms and rules contributed to the assessment.</p>
-        </article>
-
-        <article class="feature-card reveal">
-          <span class="module-tag">Module 04</span>
-          <div class="icon-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6a5.5 5.5 0 019.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>
-          </div>
-          <h3>Health Guidance</h3>
-          <p>Receive general information and suggested next steps to discuss with a professional.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- =========================================================
-       How it works
-       ========================================================= -->
-  <section class="section section-alt" id="how-it-works">
-    <div class="container">
-      <div class="section-header reveal">
-        <span class="eyebrow">The Pipeline</span>
-        <h2>How an assessment actually runs</h2>
-        <p>Three sequential stages — input, inference, output — mirroring how the rule engine itself will process your answers.</p>
-      </div>
-
-      <div class="pipeline">
-        <div class="pipeline-step reveal">
-          <div class="stage-num">01</div>
-          <h3>Tell Us</h3>
-          <p>Enter basic information — age, sex, and the symptoms you're experiencing.</p>
-          <span class="stage-code">STAGE::INPUT</span>
-        </div>
-        <div class="pipeline-step reveal">
-          <div class="stage-num">02</div>
-          <h3>Answer Questions</h3>
-          <p>The system asks relevant follow-up questions about duration and severity.</p>
-          <span class="stage-code">STAGE::INFERENCE</span>
-        </div>
-        <div class="pipeline-step reveal">
-          <div class="stage-num">03</div>
-          <h3>Get an Assessment</h3>
-          <p>Receive a plain-language explanation and suggested next steps.</p>
-          <span class="stage-code">STAGE::OUTPUT</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- =========================================================
-       Disclaimer + Final CTA
-       ========================================================= -->
-  <section class="section" id="about">
-    <div class="container">
-      <div class="disclaimer-panel reveal" style="margin-bottom: 56px;">
-        <div class="icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L14.7 3.86a2 2 0 00-3.4 0z"/></svg>
-        </div>
-        <div>
-          <h3>Medical Disclaimer</h3>
-          <p>This system is for educational and informational purposes only. It does not provide a medical diagnosis and should not replace advice from a qualified healthcare professional. If you are experiencing a medical emergency, seek appropriate emergency medical care.</p>
-        </div>
-      </div>
-
-      <div class="final-cta reveal">
-        <div>
-          <h2>Ready to see it reason through your symptoms?</h2>
-          <p>Start the assessment to walk through the questionnaire the way the finished system will use it.</p>
-        </div>
-        <a href="#" class="btn btn-primary" data-start-assessment>
-          Start Health Assessment <span class="arrow" aria-hidden="true">→</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<!-- =========================================================
-     Footer
-     ========================================================= -->
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-grid">
       <div>
-        <div class="footer-brand">
-          <svg class="brand-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect width="40" height="40" rx="11" fill="#F6F8F7" fill-opacity="0.12"/>
-            <path d="M20 10V30" stroke="#F6F8F7" stroke-width="3" stroke-linecap="round"/>
-            <path d="M10 20H30" stroke="#F6F8F7" stroke-width="3" stroke-linecap="round"/>
-          </svg>
-          MedExpert
+        <div class="brand-name">MediCheck</div>
+        <div class="brand-tag">Symptom intake</div>
+      </div>
+    </div>
+    <div class="eyebrow" id="stepLabel">Step 0 of 4</div>
+  </header>
+
+  <div class="pulse-progress">
+    <svg viewBox="0 0 680 46" preserveAspectRatio="none">
+      <path class="pulse-line" d="M0,23 L120,23 L145,6 L165,40 L185,23 L340,23 L365,6 L385,40 L405,23 L560,23 L585,6 L605,40 L625,23 L680,23"/>
+      <path class="pulse-line-fill" id="pulseFill" d="M0,23 L120,23 L145,6 L165,40 L185,23 L340,23 L365,6 L385,40 L405,23 L560,23 L585,6 L605,40 L625,23 L680,23"/>
+      <g class="step-dot" data-step="1" transform="translate(20,23)">
+        <circle r="7"/><text y="-14">DETAILS</text>
+      </g>
+      <g class="step-dot" data-step="2" transform="translate(233,23)">
+        <circle r="7"/><text y="-14">SYMPTOMS</text>
+      </g>
+      <g class="step-dot" data-step="3" transform="translate(447,23)">
+        <circle r="7"/><text y="-14">FOLLOW-UP</text>
+      </g>
+      <g class="step-dot" data-step="4" transform="translate(660,23)">
+        <circle r="7"/><text y="-14">RESULT</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- STEP 0: Welcome -->
+  <div class="step-wrap visible" id="step-0">
+    <div class="panel">
+      <div class="hero">
+        <span class="eyebrow">Before we begin</span>
+        <h1 style="margin-top:10px;">Tell us what's going on. We'll help you make sense of it.</h1>
+        <p class="sub">Answer a few quick questions about how you're feeling. It takes about two minutes — no medical jargon required.</p>
+        <div class="disclaimer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#163f3a" stroke-width="1.6"/><path d="M12 8v5" stroke="#163f3a" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="16" r="0.9" fill="#163f3a"/></svg>
+          <span>This tool offers general guidance only and does not replace a visit to a qualified doctor. If this is an emergency, contact local emergency services right away.</span>
         </div>
-        <p class="footer-desc">An educational, rule-based medical decision-support system built as an academic project.</p>
+        <div class="nav" style="justify-content:flex-start; margin-top:26px;">
+          <button class="btn btn-primary" onclick="goTo(1)">Start &nbsp;→</button>
+        </div>
       </div>
-
-      <div class="footer-col">
-        <h4>Site</h4>
-        <ul>
-          <li><a href="#top">Home</a></li>
-          <li><a href="#how-it-works">How It Works</a></li>
-          <li><a href="#about">About</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col">
-        <h4>Legal</h4>
-        <ul>
-          <li><a href="#about">Privacy</a></li>
-          <li><a href="#about">Disclaimer</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col">
-        <h4>Project</h4>
-        <ul>
-          <li><a href="#">BTech / CSE</a></li>
-          <li><a href="#">Academic Use Only</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <span>© <span data-year>2026</span> MedExpert</span>
-      <span class="footer-bottom-status"><span class="status-dot"></span>Educational build — not for clinical use</span>
     </div>
   </div>
-</footer>
 
-<!-- =========================================================
-     Placeholder modal for "Start Health Assessment"
-     ========================================================= -->
-<div class="modal-overlay">
-  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="icon-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+  <!-- STEP 1: Basic details -->
+  <div class="step-wrap" id="step-1">
+    <div class="panel">
+      <span class="eyebrow">1 of 4</span>
+      <h2 style="margin-top:8px;">A little about you</h2>
+      <p class="sub">This helps us tailor the questions that follow.</p>
+
+      <div style="margin-top:26px;">
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" id="fName" placeholder="e.g. Aditi Sharma">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Age</label>
+            <input type="number" id="fAge" placeholder="e.g. 29" min="0" max="120">
+          </div>
+          <div class="field">
+            <label>Gender</label>
+            <div class="pill-select" id="genderSelect">
+              <button type="button" data-val="Female">Female</button>
+              <button type="button" data-val="Male">Male</button>
+              <button type="button" data-val="Other">Other</button>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Existing conditions <span class="hint">(optional — e.g. diabetes, asthma, BP)</span></label>
+          <textarea id="fConditions" placeholder="Leave blank if none"></textarea>
+        </div>
+        <div class="field">
+          <label>Currently taking any medication? <span class="hint">(optional)</span></label>
+          <input type="text" id="fMeds" placeholder="Leave blank if none">
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-ghost" onclick="goTo(0)">← Back</button>
+        <button class="btn btn-primary" id="toStep2" onclick="validateAndGo(2)">Continue &nbsp;→</button>
+      </div>
     </div>
-    <h3 id="modal-title">Assessment coming soon</h3>
-    <p>The symptom questionnaire and rule-based engine are still in development. This front page is ready to connect to them once they're built.</p>
-    <button class="btn btn-ghost" data-close-modal>Close</button>
   </div>
+
+  <!-- STEP 2: Symptom selection -->
+  <div class="step-wrap" id="step-2">
+    <div class="panel">
+      <span class="eyebrow">2 of 4</span>
+      <h2 style="margin-top:8px;">What are you experiencing?</h2>
+      <p class="sub">Pick everything that applies. You can select as many as you need.</p>
+
+      <div id="symptomCategories" style="margin-top:26px;"></div>
+
+      <div class="custom-add">
+        <input type="text" id="customSymptomInput" placeholder="Don't see it? Type your own symptom">
+        <button type="button" onclick="addCustomSymptom()">Add</button>
+      </div>
+
+      <div class="selection-count" id="selectionCount">0 symptoms selected</div>
+
+      <div class="nav">
+        <button class="btn btn-ghost" onclick="goTo(1)">← Back</button>
+        <button class="btn btn-primary" id="toStep3" onclick="validateAndGo(3)" disabled>Continue &nbsp;→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Follow-up placeholder -->
+  <div class="step-wrap" id="step-3">
+    <div class="panel">
+      <span class="eyebrow">3 of 4</span>
+      <h2 style="margin-top:8px;">A few follow-up questions</h2>
+      <p class="sub">Based on what you selected, we'd normally dig a little deeper here.</p>
+
+      <div class="coming-soon">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 9a3 3 0 1 1 4 2.8c-.9.4-1.5 1.1-1.5 2.2" stroke="#f6f8f7" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17.5" r="0.9" fill="#f6f8f7"/></svg>
+        </div>
+        <div>
+          <h4>This step is under construction</h4>
+          <p>Follow-up questions specific to your selected symptoms — like duration, severity, and related signs — will appear here once the question logic is added.</p>
+        </div>
+      </div>
+
+      <div class="summary-block">
+        <div class="summary-row"><span class="k">Selected symptoms</span><span class="v"><span class="tag-list" id="followupSymptomTags"></span></span></div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-ghost" onclick="goTo(2)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(4)">Continue &nbsp;→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: Result placeholder -->
+  <div class="step-wrap" id="step-4">
+    <div class="panel">
+      <span class="eyebrow">4 of 4</span>
+      <h2 style="margin-top:8px;">Here's your summary</h2>
+      <p class="sub">The suggestion engine isn't connected yet — here's what we've collected so far.</p>
+
+      <div class="summary-block" id="finalSummary"></div>
+
+      <div class="coming-soon">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12h4l2 6 4-14 2 8h4" stroke="#f6f8f7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <h4>Suggestions are on the way</h4>
+          <p>Once the diagnosis logic is in place, this space will show possible causes, self-care tips, and when to see a doctor — based on everything you told us.</p>
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-ghost" onclick="goTo(3)">← Back</button>
+        <button class="btn btn-primary" onclick="restart()">Start over</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<script src="script.js"></script>
+<script>
+  const SYMPTOM_CATEGORIES = [
+    { name: "General", items: ["Fever", "Chills", "Fatigue", "Body ache", "Loss of appetite", "Night sweats"] },
+    { name: "Head", items: ["Headache", "Dizziness", "Migraine", "Blurred vision"] },
+    { name: "Respiratory", items: ["Cough", "Cold", "Sore throat", "Runny nose", "Sneezing", "Shortness of breath"] },
+    { name: "Stomach & Digestion", items: ["Stomach pain", "Nausea", "Vomiting", "Diarrhea", "Constipation", "Bloating"] },
+    { name: "Body & Muscle", items: ["Joint pain", "Muscle pain", "Back pain", "Neck pain"] },
+    { name: "Skin", items: ["Rash", "Itching", "Swelling", "Redness"] },
+    { name: "Other", items: ["Anxiety", "Trouble sleeping", "Weight loss", "Weight gain"] }
+  ];
+
+  const state = {
+    name: "", age: "", gender: "",
+    conditions: "", meds: "",
+    symptoms: new Set(),
+    currentStep: 0
+  };
+
+  // ---- Render symptom chips ----
+  const catWrap = document.getElementById('symptomCategories');
+  SYMPTOM_CATEGORIES.forEach(cat => {
+    const block = document.createElement('div');
+    block.className = 'category';
+    const chipsHtml = cat.items.map(s =>
+      `<button type="button" class="chip" data-symptom="${s}" onclick="toggleSymptom(this,'${s.replace(/'/g,"\\'")}')"><span class="dot"></span>${s}</button>`
+    ).join('');
+    block.innerHTML = `<h3>${cat.name}</h3><div class="chips">${chipsHtml}</div>`;
+    catWrap.appendChild(block);
+  });
+
+  function toggleSymptom(btn, name){
+    if(state.symptoms.has(name)){
+      state.symptoms.delete(name);
+      btn.classList.remove('selected');
+    } else {
+      state.symptoms.add(name);
+      btn.classList.add('selected');
+    }
+    updateSelectionCount();
+  }
+
+  function addCustomSymptom(){
+    const input = document.getElementById('customSymptomInput');
+    const val = input.value.trim();
+    if(!val) return;
+    if(!state.symptoms.has(val)){
+      state.symptoms.add(val);
+      const otherCat = document.querySelectorAll('.category')[document.querySelectorAll('.category').length - 1];
+      const chipsDiv = otherCat.querySelector('.chips');
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip selected';
+      chip.setAttribute('data-symptom', val);
+      chip.innerHTML = `<span class="dot"></span>${val}`;
+      chip.onclick = () => toggleSymptom(chip, val);
+      chipsDiv.appendChild(chip);
+    }
+    input.value = '';
+    updateSelectionCount();
+  }
+  document.getElementById('customSymptomInput').addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); addCustomSymptom(); }
+  });
+
+  function updateSelectionCount(){
+    const n = state.symptoms.size;
+    document.getElementById('selectionCount').innerHTML = n === 0
+      ? '0 symptoms selected'
+      : `<b>${n}</b> symptom${n>1?'s':''} selected`;
+    document.getElementById('toStep3').disabled = n === 0;
+  }
+
+  // ---- Gender pills ----
+  document.querySelectorAll('#genderSelect button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#genderSelect button').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.gender = btn.dataset.val;
+    });
+  });
+
+  // ---- Step navigation ----
+  const PULSE_OFFSETS = [1000, 660, 440, 220, 0]; // rough visual fill per step 0-4
+
+  function goTo(step){
+    document.querySelectorAll('.step-wrap').forEach(el => el.classList.remove('visible'));
+    document.getElementById('step-' + step).classList.add('visible');
+    state.currentStep = step;
+    document.getElementById('stepLabel').textContent = `Step ${step} of 4`;
+
+    document.querySelectorAll('.step-dot').forEach(dot => {
+      const s = parseInt(dot.dataset.step);
+      dot.classList.remove('active','done');
+      if(s < step) dot.classList.add('done');
+      else if(s === step) dot.classList.add('active');
+    });
+    const fill = document.getElementById('pulseFill');
+    const total = 1000;
+    const progress = step / 4;
+    fill.style.strokeDasharray = total;
+    fill.style.strokeDashoffset = total - (total * progress);
+
+    if(step === 3) renderFollowupSummary();
+    if(step === 4) renderFinalSummary();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function validateAndGo(step){
+    if(step === 2){
+      state.name = document.getElementById('fName').value.trim();
+      state.age = document.getElementById('fAge').value.trim();
+      state.conditions = document.getElementById('fConditions').value.trim();
+      state.meds = document.getElementById('fMeds').value.trim();
+      if(!state.name || !state.age){
+        alert('Please enter your name and age to continue.');
+        return;
+      }
+    }
+    goTo(step);
+  }
+
+  function renderFollowupSummary(){
+    const tagWrap = document.getElementById('followupSymptomTags');
+    tagWrap.innerHTML = [...state.symptoms].map(s => `<span>${s}</span>`).join('');
+  }
+
+  function renderFinalSummary(){
+    const el = document.getElementById('finalSummary');
+    el.innerHTML = `
+      <div class="summary-row"><span class="k">Name</span><span class="v">${state.name || '—'}</span></div>
+      <div class="summary-row"><span class="k">Age</span><span class="v">${state.age || '—'}</span></div>
+      <div class="summary-row"><span class="k">Gender</span><span class="v">${state.gender || '—'}</span></div>
+      <div class="summary-row"><span class="k">Existing conditions</span><span class="v">${state.conditions || 'None reported'}</span></div>
+      <div class="summary-row"><span class="k">Medication</span><span class="v">${state.meds || 'None reported'}</span></div>
+      <div class="summary-row"><span class="k">Symptoms</span><span class="v"><span class="tag-list">${[...state.symptoms].map(s=>`<span>${s}</span>`).join('')}</span></span></div>
+    `;
+  }
+
+  function restart(){
+    state.name = ""; state.age = ""; state.gender = "";
+    state.conditions = ""; state.meds = "";
+    state.symptoms.clear();
+    document.getElementById('fName').value = '';
+    document.getElementById('fAge').value = '';
+    document.getElementById('fConditions').value = '';
+    document.getElementById('fMeds').value = '';
+    document.querySelectorAll('#genderSelect button').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+    updateSelectionCount();
+    goTo(0);
+  }
+
+  // init
+  goTo(0);
+</script>
+
 </body>
 </html>
