@@ -350,6 +350,58 @@
   .coming-soon h4{ font-family:'Fraunces', serif; font-size:15px; font-weight:600; margin:0 0 4px; color: var(--teal); }
   .coming-soon p{ font-size: 13.5px; color: var(--ink-soft); margin:0; line-height:1.5; }
 
+  /* ---------- Follow-up question blocks ---------- */
+  .followup-empty{
+    font-size: 14px;
+    color: var(--ink-soft);
+    background: var(--bg);
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .followup-symptom-block{
+    margin-bottom: 26px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .followup-symptom-block:last-child{ margin-bottom:0; padding-bottom:0; border-bottom:none; }
+  .followup-symptom-title{
+    display:flex; align-items:center; gap:8px;
+    font-family:'Fraunces', serif;
+    font-size: 16.5px;
+    font-weight: 600;
+    color: var(--teal);
+    margin-bottom: 16px;
+  }
+  .followup-symptom-title::before{
+    content:'';
+    width:7px; height:7px; border-radius:50%;
+    background: var(--pulse);
+    flex-shrink:0;
+  }
+  .q-block{ margin-bottom: 18px; }
+  .q-block:last-child{ margin-bottom:0; }
+  .q-label{ font-size: 13.5px; font-weight:500; color: var(--ink); margin-bottom: 9px; }
+  .q-label .q-hint{ font-weight:400; color: var(--ink-soft); font-size:12px; }
+  .q-options{ display:flex; flex-wrap:wrap; gap:8px; }
+  .q-option{
+    padding: 8px 15px;
+    border-radius: 9px;
+    border: 1.5px solid var(--line);
+    background: #fcfdfc;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .q-option:hover{ border-color: var(--sage); }
+  .q-option.selected{
+    background: var(--teal);
+    border-color: var(--teal);
+    color: #fff;
+  }
+
   .step-wrap{ display:none; }
   .step-wrap.visible{ display:block; }
 
@@ -484,26 +536,14 @@
     </div>
   </div>
 
-  <!-- STEP 3: Follow-up placeholder -->
+  <!-- STEP 3: Follow-up questions -->
   <div class="step-wrap" id="step-3">
     <div class="panel">
       <span class="eyebrow">3 of 4</span>
       <h2 style="margin-top:8px;">A few follow-up questions</h2>
-      <p class="sub">Based on what you selected, we'd normally dig a little deeper here.</p>
+      <p class="sub">These change based on what you selected in the last step.</p>
 
-      <div class="coming-soon">
-        <div class="icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 9a3 3 0 1 1 4 2.8c-.9.4-1.5 1.1-1.5 2.2" stroke="#f6f8f7" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17.5" r="0.9" fill="#f6f8f7"/></svg>
-        </div>
-        <div>
-          <h4>This step is under construction</h4>
-          <p>Follow-up questions specific to your selected symptoms — like duration, severity, and related signs — will appear here once the question logic is added.</p>
-        </div>
-      </div>
-
-      <div class="summary-block">
-        <div class="summary-row"><span class="k">Selected symptoms</span><span class="v"><span class="tag-list" id="followupSymptomTags"></span></span></div>
-      </div>
+      <div id="followupQuestions" style="margin-top:24px;"></div>
 
       <div class="nav">
         <button class="btn btn-ghost" onclick="goTo(2)">← Back</button>
@@ -560,6 +600,7 @@
     name: "", age: "", gender: "",
     conditions: new Set(), meds: "",
     symptoms: new Set(),
+    followupAnswers: {},
     currentStep: 0
   };
 
@@ -707,7 +748,7 @@
     fill.style.strokeDasharray = total;
     fill.style.strokeDashoffset = total - (total * progress);
 
-    if(step === 3) renderFollowupSummary();
+    if(step === 3) renderFollowupQuestions();
     if(step === 4) renderFinalSummary();
     window.scrollTo({top:0, behavior:'smooth'});
   }
@@ -725,9 +766,149 @@
     goTo(step);
   }
 
-  function renderFollowupSummary(){
-    const tagWrap = document.getElementById('followupSymptomTags');
-    tagWrap.innerHTML = [...state.symptoms].map(s => `<span>${s}</span>`).join('');
+  const QUESTION_BANK = {
+    "Fever": [
+      { id: "temp", label: "How high is the temperature?", type: "single",
+        options: ["Not measured", "99–100°F", "101–102°F", "103°F or higher"] },
+      { id: "duration", label: "How long has it lasted?", type: "single",
+        options: ["Less than a day", "1–3 days", "More than 3 days"] },
+      { id: "extra", label: "Anything else along with it?", type: "multi",
+        options: ["Chills", "Sweating", "Rash", "None"] }
+    ],
+    "Cold": [
+      { id: "main", label: "What's bothering you most?", type: "multi",
+        options: ["Runny nose", "Blocked nose", "Sneezing", "Watery eyes"] },
+      { id: "duration", label: "How long has this lasted?", type: "single",
+        options: ["1–2 days", "3–5 days", "More than a week"] }
+    ],
+    "Cough": [
+      { id: "type", label: "What kind of cough is it?", type: "single",
+        options: ["Dry", "With mucus", "Blood in mucus"] },
+      { id: "duration", label: "How long has it lasted?", type: "single",
+        options: ["Less than 3 days", "3–7 days", "More than a week"] }
+    ],
+    "Sore throat": [
+      { id: "swallow", label: "Is it painful to swallow?", type: "single",
+        options: ["Yes, a lot", "Mild discomfort", "No"] },
+      { id: "duration", label: "How long has it lasted?", type: "single",
+        options: ["1–2 days", "3 or more days"] }
+    ],
+    "Headache": [
+      { id: "type", label: "How would you describe the pain?", type: "single",
+        options: ["Throbbing", "Dull / pressure", "Sharp / stabbing"] },
+      { id: "location", label: "Where is it?", type: "single",
+        options: ["One side", "Both sides", "Back of head", "Whole head"] },
+      { id: "duration", label: "How long has it lasted?", type: "single",
+        options: ["Few hours", "All day", "More than a day"] }
+    ],
+    "Stomach pain": [
+      { id: "location", label: "Where exactly is the pain?", type: "single",
+        options: ["Upper stomach", "Lower stomach", "All over"] },
+      { id: "food", label: "Does it relate to eating?", type: "single",
+        options: ["Worse after eating", "Better after eating", "No relation"] },
+      { id: "extra", label: "Any other symptoms with it?", type: "multi",
+        options: ["Vomiting", "Diarrhea", "Bloating", "None"] }
+    ],
+    "Nausea": [
+      { id: "duration", label: "How long have you felt this way?", type: "single",
+        options: ["Few hours", "1–2 days", "Longer"] },
+      { id: "vomit", label: "Have you actually vomited?", type: "single",
+        options: ["Yes", "No, just the feeling"] }
+    ],
+    "Vomiting": [
+      { id: "frequency", label: "How often has this happened?", type: "single",
+        options: ["Once", "A few times today", "Repeatedly / can't keep anything down"] },
+      { id: "duration", label: "Since when?", type: "single",
+        options: ["Today", "1–2 days", "Longer"] }
+    ],
+    "Diarrhea": [
+      { id: "frequency", label: "How many times so far today?", type: "single",
+        options: ["1–2 times", "3–5 times", "More than 5 times"] },
+      { id: "extra", label: "Anything else with it?", type: "multi",
+        options: ["Blood", "Fever", "Stomach cramps", "None"] }
+    ],
+    "Rash": [
+      { id: "itch", label: "Is it itchy?", type: "single", options: ["Yes", "No"] },
+      { id: "spread", label: "Is it spreading?", type: "single", options: ["Yes", "No", "Not sure"] }
+    ]
+  };
+
+  const DEFAULT_QUESTIONS = [
+    { id: "duration", label: "How long has this lasted?", type: "single",
+      options: ["Less than a day", "1–3 days", "More than 3 days"] },
+    { id: "severity", label: "How would you rate it?", type: "single",
+      options: ["Mild", "Moderate", "Severe"] }
+  ];
+
+  function renderFollowupQuestions(){
+    const container = document.getElementById('followupQuestions');
+    container.innerHTML = '';
+
+    if(state.symptoms.size === 0){
+      container.innerHTML = '<div class="followup-empty">No symptoms were selected in the previous step, so there\'s nothing to ask here yet.</div>';
+      return;
+    }
+
+    [...state.symptoms].forEach(sym => {
+      const questions = QUESTION_BANK[sym] || DEFAULT_QUESTIONS;
+
+      const block = document.createElement('div');
+      block.className = 'followup-symptom-block';
+
+      const title = document.createElement('div');
+      title.className = 'followup-symptom-title';
+      title.textContent = sym;
+      block.appendChild(title);
+
+      questions.forEach(q => {
+        const key = sym + '::' + q.id;
+        if(!state.followupAnswers[key]) state.followupAnswers[key] = new Set();
+        const answerSet = state.followupAnswers[key];
+
+        const qBlock = document.createElement('div');
+        qBlock.className = 'q-block';
+
+        const qLabel = document.createElement('div');
+        qLabel.className = 'q-label';
+        qLabel.innerHTML = q.label + (q.type === 'multi' ? ' <span class="q-hint">(select any)</span>' : '');
+        qBlock.appendChild(qLabel);
+
+        const optWrap = document.createElement('div');
+        optWrap.className = 'q-options';
+
+        q.options.forEach(opt => {
+          const optBtn = document.createElement('button');
+          optBtn.type = 'button';
+          optBtn.className = 'q-option';
+          optBtn.textContent = opt;
+          if(answerSet.has(opt)) optBtn.classList.add('selected');
+
+          optBtn.addEventListener('click', () => {
+            if(q.type === 'single'){
+              optWrap.querySelectorAll('.q-option').forEach(b => b.classList.remove('selected'));
+              answerSet.clear();
+              answerSet.add(opt);
+              optBtn.classList.add('selected');
+            } else {
+              if(answerSet.has(opt)){
+                answerSet.delete(opt);
+                optBtn.classList.remove('selected');
+              } else {
+                answerSet.add(opt);
+                optBtn.classList.add('selected');
+              }
+            }
+          });
+
+          optWrap.appendChild(optBtn);
+        });
+
+        qBlock.appendChild(optWrap);
+        block.appendChild(qBlock);
+      });
+
+      container.appendChild(block);
+    });
   }
 
   function renderFinalSummary(){
@@ -740,12 +921,28 @@
       <div class="summary-row"><span class="k">Medication</span><span class="v">${state.meds || 'None reported'}</span></div>
       <div class="summary-row"><span class="k">Symptoms</span><span class="v"><span class="tag-list">${[...state.symptoms].map(s=>`<span>${s}</span>`).join('')}</span></span></div>
     `;
+
+    // Follow-up answers, grouped by symptom
+    const followupWrap = document.createElement('div');
+    followupWrap.style.marginTop = '18px';
+    [...state.symptoms].forEach(sym => {
+      const questions = QUESTION_BANK[sym] || DEFAULT_QUESTIONS;
+      const rows = questions.map(q => {
+        const key = sym + '::' + q.id;
+        const answers = state.followupAnswers[key];
+        const answered = answers && answers.size ? [...answers].join(', ') : 'Not answered';
+        return `<div class="summary-row"><span class="k">${q.label}</span><span class="v">${answered}</span></div>`;
+      }).join('');
+      followupWrap.innerHTML += `<div class="summary-block" style="margin-top:12px;"><div class="followup-symptom-title" style="font-size:14px;margin-bottom:8px;">${sym}</div>${rows}</div>`;
+    });
+    el.appendChild(followupWrap);
   }
 
   function restart(){
     state.name = ""; state.age = ""; state.gender = "";
     state.conditions.clear(); state.meds = "";
     state.symptoms.clear();
+    state.followupAnswers = {};
     document.getElementById('fName').value = '';
     document.getElementById('fAge').value = '';
     document.getElementById('fMeds').value = '';
